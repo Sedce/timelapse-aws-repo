@@ -45,7 +45,7 @@ class SignUp(Resource):
         new_user = User(
             username=data.get("username"),
             email=data.get("email"),
-            password=generate_password_hash(data.get("password")),
+            pwd=generate_password_hash(data.get("password")),
         )
 
         new_user.save()
@@ -60,11 +60,11 @@ class Login(Resource):
         data = request.get_json()
 
         username = data.get("username")
-        password = data.get("password")
+        pwd = data.get("password")
 
         db_user = User.query.filter_by(username=username).first()
 
-        if db_user and check_password_hash(db_user.password, password):
+        if db_user and check_password_hash(db_user.pwd, pwd):
 
             access_token = create_access_token(identity=db_user.username)
             refresh_token = create_refresh_token(identity=db_user.username)

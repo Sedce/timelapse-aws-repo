@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import {Form,Button} from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import {useForm} from 'react-hook-form'
@@ -32,7 +32,7 @@ const LoginPage=()=>{
            
            if (data){
             login(data.access_token)
-
+            console.log("logging in!")
             history.push('/')
            }
            else{

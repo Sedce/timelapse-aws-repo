@@ -1,3 +1,4 @@
+
 .container{
     margin-top: 50px;
 }
@@ -8,6 +9,31 @@
     margin:auto;
     width: 80%;
 }
-.recipe{
+.camera{
     margin-top:20px;
 }
+.recipes-container
+{
+    margin-left: 300px;
+    padding: 10px;
+}
+/* Custom CSS for date number colors */
+.rdrDateRangeWrapper{
+    width: 240px;
+    margin-left: 10px;
+}
+.rdrDateRangeWrapper .rdrMonth{
+    width: 240px;
+}
+.rdrDateRangeWrapper .rdrMonthAndYearWrapper{
+    background-color: rgb(0,0,0,.9);
+    color: #fbfafa;
+}
+.rdrDateRangeWrapper .rdrDayNumber span {
+    color: #fbfafa; /* Change text color of the nested <span> */
+  }
+  rdrDateRangeWrapper .rdrDay {
+   border-style: solid;
+   border-color: '10px';
+  }
+  

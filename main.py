@@ -1,10 +1,17 @@
+# Standard Library Imports
+import base64
+import os
+import random
+import string
+from datetime import timedelta, datetime, time
 from flask import Flask
 from flask_restx import Api
-from models import Recipe, User
+from models import Camera, User
 from exts import db
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from recipes import recipe_ns
+from cameras import camera_ns
+from photos import photos_ns
 from auth import auth_ns
 from flask_cors import CORS
 
@@ -22,8 +29,9 @@ def create_app(config):
 
     api = Api(app, doc="/docs")
 
-    api.add_namespace(recipe_ns)
+    api.add_namespace(camera_ns)
     api.add_namespace(auth_ns)
+    api.add_namespace(photos_ns)
 
     @app.route("/")
     def index():
@@ -36,6 +44,6 @@ def create_app(config):
     # model (serializer)
     @app.shell_context_processor
     def make_shell_context():
-        return {"db": db, "Recipe": Recipe, "user": User}
+        return {"db": db, "camera": Camera, "user": User, "photos": Photos} 
 
     return app

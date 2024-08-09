@@ -1,6 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/main.css'
-import React from 'react'
+import React, {useState} from 'react'
 import ReactDOM from 'react-dom'
 import NavBar from './components/Navbar';
 
@@ -12,21 +12,50 @@ import {
 import HomePage from './components/Home';
 import SignUpPage from './components/SignUp';
 import LoginPage from './components/Login';
-import CreateRecipePage from './components/CreateRecipe';
+import CreateCameraPage from './components/CreateCamera';
 
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { CssBaseline } from '@mui/material';
 
+const themeLight = createTheme({
+  palette: {
+    background: {
+      default: "#000000",
+    },
+    text: {
+      primary: "#ffffff",
+      secondary: "#ffffff"
+    }
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        outlined: {
+          color: "red",
+        },
+      },
+    },
+  },
+});
 
 
 const App=()=>{
 
-    
+    const [show, setShow] =  useState(false);
+    const [showCalendar, setShowCalendar] = useState(false);
     return (
+        <ThemeProvider theme={themeLight}>
+        <CssBaseline>
         <Router>
         <div className="">
-            <NavBar/>
+            <NavBar 
+            show={show}
+            setShow={setShow}
+            showCalendar={showCalendar}
+            />
             <Switch>
-                <Route path="/create_recipe">
-                    <CreateRecipePage/>
+                <Route path="/create_camera">
+                    <CreateCameraPage/>
                 </Route>
                 <Route path="/login">
                     <LoginPage/>
@@ -35,11 +64,16 @@ const App=()=>{
                     <SignUpPage/>                
                 </Route>    
                 <Route path="/">
-                    <HomePage/>
+                    <HomePage
+                        showCalendar={showCalendar}
+                        setShowCalendar={setShowCalendar}
+                    />
                 </Route>
             </Switch>
         </div>
         </Router>
+        </CssBaseline>
+        </ThemeProvider>
     )
 }
 
