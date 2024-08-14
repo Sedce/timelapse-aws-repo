@@ -1,18 +1,25 @@
 
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields, reqparse
 from models import Photos
 from flask_jwt_extended import jwt_required
-from flask import request, jsonify, send_from_directory
+from flask import request, jsonify, send_from_directory, request
 from datetime import timedelta, datetime, time
 import re
 # Third-Party Imports
 import imageio
 import numpy as np
+import io
 from io import BytesIO
 
+import json
+import hashlib
 from PIL import Image
 import base64
+
+THUMBNAIL_SIZE = (100, 100)  # Set the size of the thumbnail images
+TIMELAPSE_SIZE = (1920, 1088)  # 1088 because encoder needs div 16
 photos_ns = Namespace("photos", description="A namespace for Photos")
+
 # Define the model for response data
 timelapse_model = photos_ns.model('Timelapse', {
     'generated_video_path': fields.String(required=True, description='Path to the generated video')
@@ -55,14 +62,12 @@ photos_model = photos_ns.model(
 def parse_verbose_date(date_str):
     try:
         clean_date_str = re.sub(r'\s\([^\)]*\)', '', date_str)
-        print(clean_date_str)
         # Format string for the cleaned date format
         format_str = '%a %b %d %Y %H:%M:%S GMT%z'
         
         # Parse the cleaned date string
         date_obj = datetime.strptime(clean_date_str, format_str)
         string_obj = date_obj.strftime('%Y-%m-%d')
-        print(string_obj)
         return string_obj
     except ValueError as e:
         print("Error parsing date:", e)
@@ -71,11 +76,8 @@ def parse_verbose_date(date_str):
 def retrieve_HD1080p_by_album_id_within_date_range(album_id, begin_date_str, end_date_str):
     photos = []
     try:
-        print(begin_date_str)
         parsed_begin_date = parse_verbose_date(begin_date_str)
         parsed_end_date = parse_verbose_date(end_date_str)
-        print('done')
-        print(parsed_begin_date)
         begin_date = datetime.strptime(parsed_begin_date, '%Y-%m-%d').date()
         end_date = datetime.strptime(parsed_end_date, '%Y-%m-%d').date()
 
@@ -90,24 +92,6 @@ def retrieve_HD1080p_by_album_id_within_date_range(album_id, begin_date_str, end
     return photos
 
 
-# def retrieve_thumbnails_by_album_id_within_date_range(album_id, begin_date_str, end_date_str, table_name = 'photos'):
-#     photos = []
-#     try:
-#         # Convert date strings to datetime.date objects
-#         begin_date = datetime.strptime(begin_date_str, '%Y-%m-%d').date()
-#         end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-        
-#         # Set time to midnight for the beginning of the day
-#         formatted_begin_date = datetime.combine(begin_date, time.min).strftime('%Y-%m-%d %H:%M:%S')
-#         # Set time to just before midnight for the end of the day
-#         formatted_end_date = datetime.combine(end_date, time.max).strftime('%Y-%m-%d %H:%M:%S')
-#         photos = db.session.query(Photos.thumbnail_data, Photos.id, Photos.album_id, Photos.source_name, Photos.date_taken).filter(Photos.album_id == album_id,Photos.date_taken.between(formatted_begin_date, formatted_end_date)).order_by(Photos.date_taken.desc()).all()
-       
-#     except Exception as err:
-#         print("MySQL Error:", err)
-#     return photos
-
-
 def retrieve_photo_by_id(photo_id):
     try:
         photo = Photos.query.with_entities(Photos.photo_data, Photos.date_taken).where(photo_id == Photos.id).first()
@@ -116,38 +100,35 @@ def retrieve_photo_by_id(photo_id):
         print("Error retrieving photo:", err)
         return None
 
-# def store_photo_in_database(photo_data, album_id, source_name, trigger_type, date_taken, photo_md5):
-#     try:
-#         connection = mysql.connector.connect(**db_config)
-#         cursor = connection.cursor()
-#         print("------ STORING IN DATABASE --------")
-#         # Store the photo data and metadata in the database
-#         insert_query = """
-#         INSERT INTO photos (album_id, source_name, trigger_type, date_taken, photo_md5, photo_data, thumbnail_data, HD1080p_data)
-#         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-#         """
-#         # Create a thumbnail from the photo_data
-#         photo = Image.open(io.BytesIO(photo_data))
-#         thumbnail = photo.copy()
-#         thumbnail.thumbnail(THUMBNAIL_SIZE)
-#         thumbnail_data = io.BytesIO()
-#         thumbnail.save(thumbnail_data, format='JPEG')
+def store_photo_in_database(photo_data, album_id, source_name, trigger_type, date_taken, photo_md5):
+    try:
+        # Create a thumbnail from the photo_data
+        photo = Image.open(io.BytesIO(photo_data))
+        thumbnail = photo.copy()
+        thumbnail.thumbnail(THUMBNAIL_SIZE)
+        thumbnail_data = io.BytesIO()
+        thumbnail.save(thumbnail_data, format='JPEG')
 
+        # Create a 1080p version
+        HD1080p = photo.resize((1648, 1088), Image.LANCZOS)
+        HD1080p_data = io.BytesIO()
+        HD1080p.save(HD1080p_data, format='JPEG')
 
-#         # Create a 1080p version with horizontal width of 1088 pixels
-  
-#         HD1080p = photo.resize((1648, 1088), Image.LANCZOS)
-#         HD1080p_data = io.BytesIO()
-#         HD1080p.save(HD1080p_data, format='JPEG')
+        # Create a new Photo object
+        new_photo = Photos(
+            album_id=album_id,
+            source_name=source_name,
+            trigger_type=trigger_type,
+            date_taken=date_taken,
+            photo_md5=photo_md5,
+            photo_data=photo_data,
+            thumbnail_data=thumbnail_data.getvalue(),
+            HD1080p_data=HD1080p_data.getvalue()
+        )
+        new_photo.save()
 
-#         cursor.execute(insert_query, (album_id, source_name, trigger_type, date_taken, photo_md5, photo_data, thumbnail_data.getvalue(), HD1080p_data.getvalue()))
-#         connection.commit()
-
-#         cursor.close()
-#         connection.close()
-     
-#     except mysql.connector.Error as err:
-#         return jsonify({'status': 'Error', 'message': str(err)})
+    except Exception as err:
+        return {'status': 'Error', 'message': str(err)}
 
 
 def retrieve_thumbnails_by_album_id_within_date_range(album_id, table_name = 'photos'):
@@ -180,7 +161,6 @@ class PhotoResource(Resource):
             return jsonify({'photo_data': base64.b64encode(photo.photo_data).decode('utf-8'), 'date_taken': photo.date_taken})
 
         except Exception as e:
-                print("Exception", e)
                 return f"Error generating timelapse: {e}"
 
 @photos_ns.route('/view_photos/<int:album_id>', methods=['GET', 'POST'])
@@ -236,59 +216,6 @@ class PhotoResource(Resource):
             return {'photo_data': base64.b64encode(photo.photo_data).decode('utf-8'), 'date_taken': photo.date_taken}
         else:
             return "Photo not found", 404
-
-# @app.route('/accept_incoming_image', methods=['POST'], strict_slashes=False)
-# def accept_incoming_image():
-#     global global_counter
-
-#     try:
-#         # Extract metadata and photo from the incoming request
-#         print("extracting files")
-#         print(request)
-#         photo_data = request.files['file'].read()
-#         print(request.files['JSON_data'])
-
-#         json_data = json.load(request.files['JSON_data'])
-
-#         print("Received JSON data:", json_data)  # Print the received JSON data for verification
-       
-
-
-#         if json_data is None:
-#             error_message = "JSON data is missing or malformed."
-#             print("Upload error:", error_message)
-#             return jsonify({'status': 'Error', 'message': error_message}), 400
-
-#         # Check if the incoming MD5 hash matches the calculated MD5 hash
-#         incoming_md5 = json_data.get('photo_md5', '')  # Get the MD5 hash from JSON
-#         calculated_md5 = hashlib.md5(photo_data).hexdigest()  # Calculate MD5 hash
-
-#         if incoming_md5 != calculated_md5:
-#             error_message = "MD5 hash mismatch."
-#             print("Upload error:", error_message)
-#             return jsonify({'status': 'Error', 'message': error_message}), 400
-
-
-#         # Process metadata...
-#         incoming_album_id = int(json_data.get('album', 0))
-#         incoming_source_name = json_data.get('source', '')
-#         incoming_trigger_type = json_data.get('trigger_type', '')
-  
-#        # Parse the incoming date in ISO 8601 format
-#         incoming_date_iso = json_data['date_taken']
-#         incoming_date = datetime.fromisoformat(incoming_date_iso)
-
-#         # Convert the parsed date to the desired format (YYYY-MM-DD HH:MM:SS)
-#         incoming_date_formatted = incoming_date.strftime('%Y-%m-%d %H:%M:%S')
-
-
-#         # Store photo data and metadata in the database...
-#         store_photo_in_database(photo_data, incoming_album_id, incoming_source_name, incoming_trigger_type, incoming_date_formatted, incoming_md5)
-#         global_counter += 1
-#         return jsonify({'status': 'Success'})
-#     except Exception as e:
-#         print("Exception in accept_incoming_image:", e)
-#         return jsonify({'status': 'Error', 'message': str(e)}), 500
 
 
 @photos_ns.route('/generate_timelapse/<int:album_id>')
@@ -373,3 +300,46 @@ class VideoResource(Resource):
             print("Exception:", e)
             return {'message': f"Error retrieving video: {e}"}, 500
 
+@photos_ns.route('/accept_incoming_image' ,methods=['POST'])
+class AcceptIncomingImageResource(Resource):
+    @photos_ns.expect(photos_model)
+    @photos_ns.response(200, 'Success')
+    @photos_ns.response(400, 'Bad Request')
+    @photos_ns.response(500, 'Internal Server Error')
+    @photos_ns.response(405, 'Internal Server Error')
+    def post(self):
+
+        try:
+            # Read the photo file and JSON file
+            photo_data = request.files['file'].read()
+            json_data = json.load(request.files['JSON_data'])
+
+            if not json_data:
+                error_message = "JSON data is missing or malformed."
+                return {'status': 'Error', 'message': error_message}, 400
+
+            # Check MD5 hash
+            incoming_md5 = json_data.get('photo_md5', '')
+            calculated_md5 = hashlib.md5(photo_data).hexdigest()
+
+            if incoming_md5 != calculated_md5:
+                error_message = "MD5 hash mismatch."
+                return {'status': 'Error', 'message': error_message}, 400
+
+            # Process metadata
+            incoming_album_id = int(json_data.get('album', 0))
+            incoming_source_name = json_data.get('source', '')
+            incoming_trigger_type = json_data.get('trigger_type', '')
+
+            # Parse the date
+            incoming_date_iso = json_data.get('date_taken', '')
+            incoming_date = datetime.fromisoformat(incoming_date_iso)
+            incoming_date_formatted = incoming_date.strftime('%Y-%m-%d %H:%M:%S')
+
+            # Store the photo data and metadata
+            store_photo_in_database(photo_data, incoming_album_id, incoming_source_name, incoming_trigger_type, incoming_date_formatted, incoming_md5)
+            return {'status': 'Success'}
+
+        except Exception as e:
+            print("Exception in accept_incoming_image:", e)
+            return {'status': 'Error', 'message': str(e)}, 500
