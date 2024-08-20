@@ -38,7 +38,7 @@ const LoggedinHome = ({setShowCalendar}) => {
     const [show, setShow] = useState(false);
     const [showPhotos, setShowPhotos] = useState(false);
     const {register,handleSubmit,setValue,formState:{errors}}=useForm()
-    const [cameraId,setCameraId]=useState(0);
+    const [cameraId,setCameraId]=useState(2);
 
     useEffect(
         () => {
@@ -66,21 +66,8 @@ const LoggedinHome = ({setShowCalendar}) => {
         setShow(false)
     }
 
-    const showModal = (id) => {
-        setShow(true)
+    const showPhotosComponent = (id) => {
         setCameraId(id)
-        cameras.map(
-            (camera)=>{
-                if(camera.id==id){
-                    setValue('title',camera.title)
-                    setValue('description',camera.description)
-                }
-            }
-        )
-    }
-
-    const showPhotosComponent = () => {
-        console.log('show photos! ')
         setShowCalendar(true);
         setShowPhotos(true);
     }
@@ -180,7 +167,7 @@ const LoggedinHome = ({setShowCalendar}) => {
                     </form>
                 </Modal.Body>
             </Modal>
-            {showPhotos && <ViewPhotosPage setShowCalendar={setShowCalendar} setShow={setShowPhotos}/>}
+            {showPhotos && <ViewPhotosPage cameraID={cameraId} setShowCalendar={setShowCalendar} setShow={setShowPhotos}/>}
             
             {!showPhotos && (
                        <>
@@ -190,7 +177,7 @@ const LoggedinHome = ({setShowCalendar}) => {
                                    <Camera
                                        title={camera.source}
                                        description={camera.id}
-                                       onClick={() => showPhotosComponent(camera.id)}
+                                       onClick={() => showPhotosComponent(camera.album)}
                                        onDelete={() => deleteCamera(camera.id)}
                                        status={camera.status}
                                    />

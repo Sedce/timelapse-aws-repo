@@ -34,11 +34,11 @@ const imageStyle = {
   height: 'auto',
 };
 
-const ViewPhotosPage = ({ setShow, setShowCalendar }) => {
+const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID }) => {
 
   const ITEMS_PER_PAGE = 9; // Number of items to display per page
 
-  const [photoThumbnail, setPhotoThumbnail] = useState([]);
+  const [photoThumbnail, setPhotoThumbnail] = useState();
   const [photo, setPhoto] = useState();
   const [currentPage, setCurrentPage] = useState(1);
   const [open, setOpen] = React.useState(false);
@@ -47,7 +47,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar }) => {
   const handleClose = () => setOpen(false);
 
   useEffect(() => {
-    fetch('/photos/view_photos/' + '1')
+    fetch('/photos/view_photos/' + cameraID)
       .then(res => res.json())
       .then(data => {
         setPhotoThumbnail(data);
@@ -58,7 +58,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar }) => {
   const totalPages = Math.ceil(photoThumbnail?.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentItems = photoThumbnail?.slice(startIndex, endIndex);
+  const currentItems = photoThumbnail?.length > 0 ? photoThumbnail?.slice(startIndex, endIndex) : [];
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
@@ -71,7 +71,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar }) => {
 
   const onThumbnailClick = (index) => {
     setCurrentIndex(index);
-    fetch(`/photos/photo/${photoThumbnail[index].id}`)
+    fetch(`/photos/photo/${photoThumbnail[index]?.id}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -99,7 +99,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar }) => {
   }
 
   const handleNextClick = () => {
-    if (currentIndex < photoThumbnail.length - 1) {
+    if (currentIndex < photoThumbnail?.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
       fetch(`/photos/photo/${photoThumbnail[nextIndex].id}`)
@@ -128,7 +128,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar }) => {
                 alt="Photo"
                 style={imageStyle}
               />
-              <button onClick={handleNextClick} disabled={currentIndex === photoThumbnail.length - 1} style={{ marginLeft: '10px' }}>
+              <button onClick={handleNextClick} disabled={currentIndex === photoThumbnail?.length - 1} style={{ marginLeft: '10px' }}>
                 &gt; {/* Right arrow */}
               </button>
             </div>
@@ -139,7 +139,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar }) => {
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <ImageList cols={3} gap={8}>
-            {currentItems.map((item, index) => (
+            {currentItems?.map((item, index) => (
               <ImageListItem key={item.id} onClick={() => onThumbnailClick(startIndex + index)}>
                 <img
                   src={`data:image/jpeg;base64,${item.thumbnail_data}`}

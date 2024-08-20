@@ -113,7 +113,7 @@ class CameraCheckinResource(Resource):
                 return {"message": "Camera ID is required"}, 400
 
             # Retrieve the camera by ID, ensuring it's a single object
-            camera_to_update = Camera.query.filter_by(id=camera_id).first_or_404()
+            camera_to_update = Camera.query.filter_by(camera_id=camera_id).first_or_404()
 
             # Set the last_check_in to the current datetime
             camera_to_update.last_check_in = datetime.utcnow()

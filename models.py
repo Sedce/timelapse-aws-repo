@@ -18,7 +18,7 @@ class Camera(db.Model):
     timelapse = db.Column(db.Integer(), unique=True, nullable=True)
     last_check_in = db.Column(db.DateTime, unique=True, nullable=True)
     status = db.Column(db.Boolean, nullable=True)
-
+    name = db.Column(db.String(255),  nullable=True)
     
     def __repr__(self):
         return '<Camera_Parameters %i>' % self.camera_id

@@ -77,12 +77,13 @@ const NavBar = ({showCalendar}) => {
 
       console.log(formData)
       try {
-        const response = await fetch(`/photos/generate_timelapse/${1}`, {
+        const response = await fetch(`/photos/generate_timelapse/${2}`, {
           method: 'POST',
           body: formData,
         });
 
-        if (!response.ok) {
+        if (!response.ok){
+          console.log(response)
           throw new Error('Network response was not ok');
         }
 

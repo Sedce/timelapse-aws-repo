@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import { Button, CardActionArea, CardActions } from '@mui/material';
 
 
-const Camera=({title,description,onClick,onDelete, status})=>{
+const Camera=({onClick, description})=>{
 
     return(
         <Card sx={{ maxWidth: 340}}>
@@ -20,7 +20,7 @@ const Camera=({title,description,onClick,onDelete, status})=>{
         </CardActionArea>
         <CardActions sx={{backgroundColor:'red'}}>
           <Button size="small" color="primary" onClick={onClick}>
-            <Typography color="common.white">Camera 1 - Area 1</Typography>
+            <Typography color="common.white">Album {description}</Typography>
           </Button>
         </CardActions>
       </Card>

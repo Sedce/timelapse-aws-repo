@@ -14,10 +14,17 @@ from io import BytesIO
 import json
 import hashlib
 from PIL import Image
+from PIL.ExifTags import TAGS
 import base64
+import logging
+import random
+import string
 
-THUMBNAIL_SIZE = (100, 100)  # Set the size of the thumbnail images
+THUMBNAIL_SIZE = (300, 300)  # Set the size of the thumbnail images
 TIMELAPSE_SIZE = (1920, 1088)  # 1088 because encoder needs div 16
+
+logging.basicConfig(level=logging.INFO, filename='/var/log/camera_service.log', format='%(asctime)s - %(levelname)s - %(message)s')
+
 photos_ns = Namespace("photos", description="A namespace for Photos")
 
 # Define the model for response data
@@ -58,6 +65,41 @@ photos_model = photos_ns.model(
 
 
 # from datetime import datetime
+
+def extract_date_taken(photo_data):
+    """Extract DateTimeOriginal from the photo's EXIF data."""
+    try:
+        image = Image.open(BytesIO(photo_data))
+        exif_data = image._getexif()
+
+        if exif_data:
+            for tag, value in exif_data.items():
+                tag_name = TAGS.get(tag, tag)
+                if tag_name == "DateTimeOriginal":
+                    return value
+    except Exception as e:
+        print(f"Error processing image: {e}")
+    
+    return None
+
+def update_date_taken():
+    """Update all photos in the database with the date taken from EXIF data."""
+    photos = Photos.query.all()
+
+    for photo in photos:
+        exif_date_taken = extract_date_taken(photo.photo_data)
+
+        if exif_date_taken:
+            # Convert exif_date_taken to datetime object
+            from datetime import datetime
+            try:
+                photo.date_taken = datetime.strptime(exif_date_taken, "%Y:%m:%d %H:%M:%S")
+                photo.save()
+            except ValueError as ve:
+                print(f"Error converting date: {ve}")
+        else:
+            print(f"No EXIF date found for photo ID {photo.id}")
+    print("Date Taken updated for all photos.")
 
 def parse_verbose_date(date_str):
     try:
@@ -109,6 +151,23 @@ def store_photo_in_database(photo_data, album_id, source_name, trigger_type, dat
         thumbnail_data = io.BytesIO()
         thumbnail.save(thumbnail_data, format='JPEG')
 
+       #need to have a function to make a decision which more accurate raspberry or photo exif date
+        exif_data = photo._getexif()
+
+        date_taken_cam = None
+
+        if exif_data:
+         for tag, value in exif_data.items():
+          tag_name = TAGS.get(tag, tag)
+          if tag_name == "DateTimeOriginal":
+           date_taken_cam = value
+           break
+       
+        if date_taken_cam:
+         print(f"Date Taken: {date_taken}")
+        else:
+         print("Date Taken not found in EXIF data.")
+        
         # Create a 1080p version
         HD1080p = photo.resize((1648, 1088), Image.LANCZOS)
         HD1080p_data = io.BytesIO()
@@ -119,7 +178,7 @@ def store_photo_in_database(photo_data, album_id, source_name, trigger_type, dat
             album_id=album_id,
             source_name=source_name,
             trigger_type=trigger_type,
-            date_taken=date_taken,
+            date_taken=date_taken_cam,
             photo_md5=photo_md5,
             photo_data=photo_data,
             thumbnail_data=thumbnail_data.getvalue(),
@@ -236,7 +295,7 @@ class TimelapseResource(Resource):
                     return {"message": "No photos found in the selected date range."}, 404
 
                 # Specify the output video path
-                video_path = f'generated/timelapse_video_{album_id}_generated_timelapse.mp4'
+                video_path = f'generated/timelapse_video_{album_id}_{"".join(random.choices(string.ascii_letters + string.digits, k=8))}.mp4'
 
                 # Specify the dimensions of the video frames
                 frame_width = 1920
@@ -244,9 +303,9 @@ class TimelapseResource(Resource):
 
                 # Find the first frame with HD1080p data to calculate the aspect ratio
                 aspect_ratio_set = False
-                for HD1080p_data in photos:
-                    if HD1080p_data:
-                        img_array = np.frombuffer(HD1080p_data['HD1080p_data'], dtype=np.uint8)
+                for photo in photos:
+                    if photo.HD1080p_data:
+                        img_array = np.frombuffer(photo.HD1080p_data, dtype=np.uint8)
                         img = Image.open(BytesIO(img_array))
                         img_aspect_ratio = img.width / img.height
                         frame_width = int(frame_height * img_aspect_ratio)
@@ -258,10 +317,10 @@ class TimelapseResource(Resource):
                 video_writer = imageio.get_writer(video_path, format='mp4', fps=frame_rate)
                 
                 # Iterate through the photos and add them to the video
-                for HD1080p_data in photos:
-                    if HD1080p_data:
+                for photo in photos:
+                    if photo.HD1080p_data:
                         try:
-                            img_array = np.frombuffer(HD1080p_data['HD1080p_data'], dtype=np.uint8)
+                            img_array = np.frombuffer(photo.HD1080p_data, dtype=np.uint8)
                             img = Image.open(BytesIO(img_array))
                             img_array_resized = np.array(img)
                             video_writer.append_data(img_array_resized)
@@ -276,7 +335,7 @@ class TimelapseResource(Resource):
                 return {'generated_video_path': generated_video_path}
 
             except Exception as e:
-                print("Exception", e)
+                logging.exception(f"ERROR: {e}")
                 return {"message": f"Error generating timelapse: {e}"}, 500
 
 @photos_ns.route('/generated/<path:video_filename>')
@@ -287,7 +346,7 @@ class VideoResource(Resource):
             # Ensure that video_filename is properly sanitized
             filename = video_filename.replace('/', '_').replace(' ', '_').replace(':', '_')
         
-            video_directory = './generated/'  # Replace with your actual directory path
+            video_directory = './generated/' # Replace with your actual directory path
             
             return send_from_directory(video_directory, filename, as_attachment=True)
         
@@ -308,8 +367,8 @@ class AcceptIncomingImageResource(Resource):
     @photos_ns.response(500, 'Internal Server Error')
     @photos_ns.response(405, 'Internal Server Error')
     def post(self):
-
         try:
+           # update_date_taken();
             # Read the photo file and JSON file
             photo_data = request.files['file'].read()
             json_data = json.load(request.files['JSON_data'])
@@ -321,6 +380,7 @@ class AcceptIncomingImageResource(Resource):
             # Check MD5 hash
             incoming_md5 = json_data.get('photo_md5', '')
             calculated_md5 = hashlib.md5(photo_data).hexdigest()
+
 
             if incoming_md5 != calculated_md5:
                 error_message = "MD5 hash mismatch."
