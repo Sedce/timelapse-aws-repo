@@ -42,6 +42,7 @@ const themeLight = createTheme({
 const App=()=>{
 
     const [show, setShow] =  useState(false);
+    const [showVideos, setShowVideos] = useState(false);
     const [showCalendar, setShowCalendar] = useState(false);
     return (
         <ThemeProvider theme={themeLight}>
@@ -52,6 +53,8 @@ const App=()=>{
             show={show}
             setShow={setShow}
             showCalendar={showCalendar}
+            showVideos={showVideos}
+            setShowVideos={setShowVideos}
             />
             <Switch>
                 <Route path="/create_camera">
@@ -67,6 +70,8 @@ const App=()=>{
                     <HomePage
                         showCalendar={showCalendar}
                         setShowCalendar={setShowCalendar}
+                        showVideos={showVideos}
+                        setShowVideos={setShowVideos}
                     />
                 </Route>
             </Switch>

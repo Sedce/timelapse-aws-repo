@@ -46,7 +46,7 @@ const videoStyle = {
 };
 
 
-const NavBar = ({showCalendar}) => {
+const NavBar = ({showCalendar, setShowVideos}) => {
 
     const [logged] = useAuth();
     const [age, setAge] = React.useState('');
@@ -60,6 +60,7 @@ const NavBar = ({showCalendar}) => {
       }
     ]);
     const handleClose = () => setOpen(false); 
+    const archive = () => setShowVideos(true); 
     const [videoURL, setVideoURL] = useState(''); 
 
     const handleChange = (event) => {
@@ -159,25 +160,6 @@ const NavBar = ({showCalendar}) => {
                 src={evvpLogo}
                 > 
                 </Box>
-                <FormControl fullWidth>
-                  <InputLabel id="demo-simple-select-label">Location</InputLabel>
-                  <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
-                    value={age}
-                    onChange={handleChange}
-                    sx={{
-                      width: '80%',
-                      height: '40px',
-                      margin: '10px',
-                      backgroundColor: '#bdbdbd',
-                    }}
-                  >
-                    <MenuItem value={10}>Ten</MenuItem>
-                    <MenuItem value={20}>Twenty</MenuItem>
-                    <MenuItem value={30}>Thirty</MenuItem>
-                  </Select>
-                </FormControl>
               </Box>
               
               {showCalendar && (
@@ -206,7 +188,7 @@ const NavBar = ({showCalendar}) => {
                       width: '80%',
                       backgroundColor: '#bdbdbd',
                       margin: '10px'
-                    }}>Archive</Button>
+                    }} onClick={() => {archive()}}>Archive</Button>
               <Divider />
               <Button sx={{
                       width: '50%',

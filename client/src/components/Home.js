@@ -5,6 +5,7 @@ import Camera from './Camera'
 import { Modal ,Form,Button} from 'react-bootstrap'
 import { useForm } from 'react-hook-form'
 import ViewPhotosPage from './Photos'
+import ViewArchivePage from './Archive'
 import { Grid } from '@mui/material'
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
@@ -33,11 +34,11 @@ const theme = createTheme({
       },
     });
 
-const LoggedinHome = ({setShowCalendar}) => {
+const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos}) => {
     const [cameras, setCameras] = useState([]);
     const [show, setShow] = useState(false);
-    const [showPhotos, setShowPhotos] = useState(false);
     const {register,handleSubmit,setValue,formState:{errors}}=useForm()
+    const [showPhotos, setShowPhotos] = useState(false);
     const [cameraId,setCameraId]=useState(2);
 
     useEffect(
@@ -167,9 +168,10 @@ const LoggedinHome = ({setShowCalendar}) => {
                     </form>
                 </Modal.Body>
             </Modal>
+            {showVideos && <ViewArchivePage setShowVideos={setShowVideos}/>}
             {showPhotos && <ViewPhotosPage cameraID={cameraId} setShowCalendar={setShowCalendar} setShow={setShowPhotos}/>}
             
-            {!showPhotos && (
+            {(!showPhotos && !showVideos )&& (
                        <>
                        <Grid container spacing={2} padding='100px'>
                            {cameras.map((camera) => (
@@ -195,18 +197,18 @@ const LoggedOutHome = () => {
     return (
         <div className="home container">
             <h1 className="heading">Welcome to the Cameras</h1>
-            <Link to='/signup' className="btn btn-primary btn-lg">Get Started</Link>
+            <Link to='/login' className="btn btn-primary btn-lg">Get Started</Link>
         </div>
     )
 }
 
-const HomePage = ({showCalendar, setShowCalendar}) => {
+const HomePage = ({setShowVideos, setShowCalendar, showVideos}) => {
 
     const [logged] = useAuth();
     return (
         <ThemeProvider theme={theme}>
         <div>
-            {logged ? <LoggedinHome setShowCalendar={setShowCalendar} /> : <LoggedOutHome />}
+            {logged ? <LoggedinHome setShowVideos={setShowVideos} setShowCalendar={setShowCalendar} showVideos={showVideos} /> : <LoggedOutHome />}
         </div>
         </ThemeProvider>
     )

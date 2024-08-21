@@ -79,9 +79,6 @@ const LoginPage=()=>{
                     <Button as="sub" variant="primary" onClick={handleSubmit(loginUser)}>Login</Button>
                 </Form.Group>
                 <br></br>
-                <Form.Group>
-                    <small>Do not have an account? <Link to='/signup'>Create One</Link></small>
-                </Form.Group>
                 
             </form>
         </div>

@@ -10,6 +10,7 @@ import imageio
 import numpy as np
 import io
 from io import BytesIO
+import os
 
 import json
 import hashlib
@@ -23,7 +24,7 @@ import string
 THUMBNAIL_SIZE = (300, 300)  # Set the size of the thumbnail images
 TIMELAPSE_SIZE = (1920, 1088)  # 1088 because encoder needs div 16
 
-logging.basicConfig(level=logging.INFO, filename='/var/log/camera_service.log', format='%(asctime)s - %(levelname)s - %(message)s')
+#logging.basicConfig(level=logging.INFO, filename='/var/log/camera_service.log', format='%(asctime)s - %(levelname)s - %(message)s')
 
 photos_ns = Namespace("photos", description="A namespace for Photos")
 
@@ -332,7 +333,7 @@ class TimelapseResource(Resource):
 
                 generated_video_path = video_path
 
-                return {'generated_video_path': generated_video_path}
+                return {'generated_video_path': _video_path}
 
             except Exception as e:
                 logging.exception(f"ERROR: {e}")
@@ -358,6 +359,24 @@ class VideoResource(Resource):
             # Handle other potential errors
             print("Exception:", e)
             return {'message': f"Error retrieving video: {e}"}, 500
+
+@photos_ns.route('/videos')
+class VideoListResource(Resource):
+    @photos_ns.doc(description='List all video files in the /generated directory')
+    def get(self):
+        try:
+            # Get the list of all files in the directory
+            all_files = os.listdir('./generated/')
+            # Filter the files to include only video files
+            # You can extend this list based on your supported video formats
+            video_extensions = ('.mp4', '.avi', '.mov', '.mkv', '.webm')
+            video_files = [f"/generated/{f}" for f in all_files if f.lower().endswith(video_extensions)]
+            
+            return jsonify({'videos': video_files})
+        
+        except Exception as e:
+            print("Exception:", e)
+            return {'message': f"Error retrieving video list: {e}"}, 500
 
 @photos_ns.route('/accept_incoming_image' ,methods=['POST'])
 class AcceptIncomingImageResource(Resource):
