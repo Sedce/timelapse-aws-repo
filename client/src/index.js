@@ -44,6 +44,7 @@ const App=()=>{
     const [show, setShow] =  useState(false);
     const [showVideos, setShowVideos] = useState(false);
     const [showCalendar, setShowCalendar] = useState(false);
+    const [albumID, setAlbumID] = useState()
     return (
         <ThemeProvider theme={themeLight}>
         <CssBaseline>
@@ -55,6 +56,8 @@ const App=()=>{
             showCalendar={showCalendar}
             showVideos={showVideos}
             setShowVideos={setShowVideos}
+            albumID={albumID}
+            setAlbumID={setAlbumID}
             />
             <Switch>
                 <Route path="/create_camera">
@@ -72,6 +75,8 @@ const App=()=>{
                         setShowCalendar={setShowCalendar}
                         showVideos={showVideos}
                         setShowVideos={setShowVideos}
+                        albumID={albumID}
+                        setAlbumID={setAlbumID}
                     />
                 </Route>
             </Switch>

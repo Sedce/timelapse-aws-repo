@@ -8,6 +8,10 @@ import ViewPhotosPage from './Photos'
 import ViewArchivePage from './Archive'
 import { Grid } from '@mui/material'
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import Skeleton from "@mui/material/Skeleton";
+import { styled } from "@mui/system";
+import Box from '@mui/material/Box';
+import CircularProgress from "@mui/material/CircularProgress";
 
 const theme = createTheme({
     palette: {
@@ -34,12 +38,17 @@ const theme = createTheme({
       },
     });
 
-const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos}) => {
+const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setAlbumID}) => {
     const [cameras, setCameras] = useState([]);
     const [show, setShow] = useState(false);
     const {register,handleSubmit,setValue,formState:{errors}}=useForm()
     const [showPhotos, setShowPhotos] = useState(false);
     const [cameraId,setCameraId]=useState(2);
+    const [loading, setLoading] = useState({
+        circular: false,
+        linear: false,
+        skeleton: false
+      });
 
     useEffect(
         () => {
@@ -68,6 +77,7 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos}) => {
     }
 
     const showPhotosComponent = (id) => {
+        setAlbumID(id)
         setCameraId(id)
         setShowCalendar(true);
         setShowPhotos(true);
@@ -169,8 +179,9 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos}) => {
                 </Modal.Body>
             </Modal>
             {showVideos && <ViewArchivePage setShowVideos={setShowVideos}/>}
-            {showPhotos && <ViewPhotosPage cameraID={cameraId} setShowCalendar={setShowCalendar} setShow={setShowPhotos}/>}
-            
+            {loading.skeleton ? <SkeletonLoading /> : null}
+            {loading.circular ? <CircularLoading /> : null}
+            {showPhotos && <ViewPhotosPage cameraID={cameraId} setShowCalendar={setShowCalendar} setShow={setShowPhotos} loading={loading} setLoading={setLoading}/>}
             {(!showPhotos && !showVideos )&& (
                        <>
                        <Grid container spacing={2} padding='100px'>
@@ -178,7 +189,7 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos}) => {
                                <Grid item xs={4} md={4} key={camera.id} >
                                    <Camera
                                        title={camera.source}
-                                       description={camera.id}
+                                       name={camera.name}
                                        onClick={() => showPhotosComponent(camera.album)}
                                        onDelete={() => deleteCamera(camera.id)}
                                        status={camera.status}
@@ -192,23 +203,64 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos}) => {
     )
 }
 
+const DisabledBackground = styled(Box)({
+    width: "100%",
+    height: "100%",
+    position: "fixed",
+    background: "#ccc",
+    opacity: 0.5,
+    zIndex: 1
+  });
+  
+  const CircularLoading = () => (
+    <>
+      <CircularProgress
+        size={70}
+        sx={{
+          position: "fixed",
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 2
+        }}
+      />
+      <DisabledBackground />
+    </>
+  );
 
+  const SkeletonLoading = () => (
+    <Box sx={{ p: 1 }}>
+      <Grid container wrap="nowrap">
+        {Array.from(new Array(3)).map((item, index) => (
+          <Box key={index} sx={{ width: 210, marginRight: 1, my: 2 }}>
+            <Skeleton variant="rectangular" width={210} height={118} />
+            <Box sx={{ pt: 0.5 }}>
+              <Skeleton />
+              <Skeleton width="60%" />
+            </Box>
+          </Box>
+        ))}
+      </Grid>
+    </Box>
+  );
+  
 const LoggedOutHome = () => {
     return (
         <div className="home container">
-            <h1 className="heading">Welcome to the Cameras</h1>
-            <Link to='/login' className="btn btn-primary btn-lg">Get Started</Link>
+            <h1 className="heading">Eagle Vision Video Timelapse</h1>
+            <Link to='/login' className="btn btn-primary btn-lg">Log In</Link>
         </div>
     )
 }
 
-const HomePage = ({setShowVideos, setShowCalendar, showVideos}) => {
+const HomePage = ({setShowVideos, setShowCalendar, showVideos, albumID, setAlbumID}) => {
 
     const [logged] = useAuth();
     return (
         <ThemeProvider theme={theme}>
         <div>
-            {logged ? <LoggedinHome setShowVideos={setShowVideos} setShowCalendar={setShowCalendar} showVideos={showVideos} /> : <LoggedOutHome />}
+            {logged ? <LoggedinHome setShowVideos={setShowVideos} setShowCalendar={setShowCalendar} showVideos={showVideos} albumID={albumID}
+                        setAlbumID={setAlbumID}/> : <LoggedOutHome />}
         </div>
         </ThemeProvider>
     )

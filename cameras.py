@@ -12,8 +12,8 @@ camera_ns = Namespace("camera", description="A namespace for Cameras")
 
 camera_model = camera_ns.model(
     "Camera",
-    {"id": fields.Integer(), "camera_id": fields.Integer(), "album": fields.Integer(), "status": fields.Integer()},
-)
+    {"id": fields.Integer(), "camera_id": fields.Integer(), "album": fields.Integer(), "status": fields.Integer(), "name":fields.String()
+})
 
 def check_camera_activities():
     try:

@@ -127,7 +127,7 @@ const ViewArchivePage = ({ setShowVideos, setShowCalendar, cameraID }) => {
         {currentItems?.map((videoUrl, index) => (
             <ImageListItem key={index} onClick={() => onThumbnailClick(startIndex + index)}>
             <video
-                src={videoUrl} // Use video URL directly
+                src={'photos/' + videoUrl} // Use video URL directly
                 style={{ width: '100%', height: 'auto' }}
                 controls
             />

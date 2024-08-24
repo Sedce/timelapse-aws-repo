@@ -333,7 +333,7 @@ class TimelapseResource(Resource):
 
                 generated_video_path = video_path
 
-                return {'generated_video_path': _video_path}
+                return {'generated_video_path': generated_video_path}
 
             except Exception as e:
                 logging.exception(f"ERROR: {e}")

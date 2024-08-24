@@ -34,7 +34,7 @@ const imageStyle = {
   height: 'auto',
 };
 
-const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID }) => {
+const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loading }) => {
 
   const ITEMS_PER_PAGE = 9; // Number of items to display per page
 
@@ -47,13 +47,17 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID }) => {
   const handleClose = () => setOpen(false);
 
   useEffect(() => {
+    setLoading({ ...loading, ["skeleton"]: true })
     fetch('/photos/view_photos/' + cameraID)
       .then(res => res.json())
       .then(data => {
         setPhotoThumbnail(data);
+        setLoading(prevLoading => ({ ...prevLoading, skeleton: false }));
       })
       .catch(err => console.log(err));
   }, []);
+
+
 
   const totalPages = Math.ceil(photoThumbnail?.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -71,6 +75,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID }) => {
 
   const onThumbnailClick = (index) => {
     setCurrentIndex(index);
+    setLoading({ ...loading, ["circular"]: true })
     fetch(`/photos/photo/${photoThumbnail[index]?.id}`)
       .then(response => {
         if (!response.ok) {
@@ -80,6 +85,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID }) => {
       })
       .then(data => {
         setPhoto(data);
+        setLoading({ ...loading, ["circular"]: false })
         setOpen(true);
       })
       .catch(error => {

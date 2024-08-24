@@ -46,7 +46,7 @@ const videoStyle = {
 };
 
 
-const NavBar = ({showCalendar, setShowVideos}) => {
+const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
 
     const [logged] = useAuth();
     const [age, setAge] = React.useState('');
@@ -68,8 +68,6 @@ const NavBar = ({showCalendar, setShowVideos}) => {
     };
 
     const generate_timelapse = async () =>  {
-      console.log(state);
-      console.log("generate timelapse now!");
 
       // Prepare data to send in the request
       const formData = new FormData();
@@ -78,7 +76,7 @@ const NavBar = ({showCalendar, setShowVideos}) => {
 
       console.log(formData)
       try {
-        const response = await fetch(`/photos/generate_timelapse/${2}`, {
+        const response = await fetch(`/photos/generate_timelapse/` + albumID, {
           method: 'POST',
           body: formData,
         });
