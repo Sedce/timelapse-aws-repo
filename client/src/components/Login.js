@@ -4,7 +4,14 @@ import { Link } from 'react-router-dom'
 import {useForm} from 'react-hook-form'
 import { login } from '../auth'
 import {useHistory} from 'react-router-dom'
+import { Box, Typography } from '@mui/material';
 
+
+const style = {
+    backgroundColor:'rgb(255,255,255,0.5)',
+    paddding:'20px',
+    width: '300px'
+  };
 
 const LoginPage=()=>{
     
@@ -41,19 +48,16 @@ const LoginPage=()=>{
 
 
        })
-
-
-
        reset()
     }
 
     return(
         <div className="container">
-        <div className="form">
-            <h1>Login Page</h1>
-            <form>
+        <h1>Timelapse Management System</h1>
+        <Box sx={style}>
+            <form style={{padding:'20px'}}>
+                <Typography>Welcome!</Typography>
                 <Form.Group>
-                    <Form.Label>Username</Form.Label>
                     <Form.Control type="text"
                         placeholder="Your username"
                         {...register('username',{required:true,maxLength:25})}
@@ -64,7 +68,6 @@ const LoginPage=()=>{
                 <br></br>
                
                 <Form.Group>
-                    <Form.Label>Password</Form.Label>
                     <Form.Control type="password"
                         placeholder="Your password"
                         {...register('password',{required:true,minLength:8})}
@@ -76,12 +79,12 @@ const LoginPage=()=>{
                     </p>}
                 <br></br>
                 <Form.Group>
-                    <Button as="sub" variant="primary" onClick={handleSubmit(loginUser)}>Login</Button>
+                    <Button as="sub" variant="primary" onClick={handleSubmit(loginUser)} style={{backgroundColor:'red'}}>LOGIN</Button>
                 </Form.Group>
                 <br></br>
                 
             </form>
-        </div>
+        </Box>
     </div>
     )
 }

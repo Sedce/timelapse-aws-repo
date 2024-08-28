@@ -202,7 +202,7 @@ def retrieve_thumbnails_by_album_id_within_date_range(album_id, table_name = 'ph
 def retrieve_latest_photo_for_album(album_id):
 
     try:
-        photo = Photos.query(photo_data, date_taken).where(album_id == album_id).order_by(date_taken.desc()).first()
+        photo = Photos.query.with_entities(Photos.thumbnail_data, Photos.date_taken).filter(Photos.album_id == album_id).order_by(Photos.date_taken.desc()).first()
     except Exception as err:
         photo = None
     return photo
@@ -210,16 +210,15 @@ def retrieve_latest_photo_for_album(album_id):
 
 @photos_ns.route('/latest_photo/<int:album_id>')
 class PhotoResource(Resource):
-    @photos_ns.marshal_with(photos_model)
     def get(self, album_id):
         try:
             photo = retrieve_latest_photo_for_album(album_id)
             date_taken = photo['date_taken']
-            photo_filename = f'{album_id}_latest_photo_{date_taken}.jpg'
-            filename = photo_filename.replace('/', '_').replace(' ','_').replace(':','_')
-            
-            return jsonify({'photo_data': base64.b64encode(photo.photo_data).decode('utf-8'), 'date_taken': photo.date_taken})
-
+              
+            return jsonify({
+                    'thumbnail_data': base64.b64encode(photo.thumbnail_data).decode('utf-8'),
+                    'date_taken': photo.date_taken
+                })
         except Exception as e:
                 return f"Error generating timelapse: {e}"
 

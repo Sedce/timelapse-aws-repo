@@ -63,10 +63,6 @@ const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
     const archive = () => setShowVideos(true); 
     const [videoURL, setVideoURL] = useState(''); 
 
-    const handleChange = (event) => {
-      setAge(event.target.value);
-    };
-
     const generate_timelapse = async () =>  {
 
       // Prepare data to send in the request
@@ -82,14 +78,10 @@ const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
         });
 
         if (!response.ok){
-          console.log(response)
           throw new Error('Network response was not ok');
         }
 
         const result = await response.json();
-        console.log('Generated video path:', result.generated_video_path);
-        console.log(result)
-        console.log(result.generated_video_path)
         setVideoURL('photos/' + result.generated_video_path)
         setOpen(true);
         // You can handle the result here, e.g., display it to the user
@@ -140,7 +132,7 @@ const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
                   boxSizing: 'border-box',
                   paddingTop: '20px',
                   backgroundColor: 'rgba(0,0,0,0.1)',
-                  borderRight: 'solid',
+                  borderRight: '0.5px solid white',
                 },
               }}
               variant="permanent"
@@ -184,12 +176,21 @@ const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
               </> )}
               <Button sx={{
                       width: '80%',
-                      backgroundColor: '#bdbdbd',
+                      backgroundColor: 'red',
+                      color:'white',
                       margin: '10px'
                     }} onClick={() => {archive()}}>Archive</Button>
               <Divider />
               <Button sx={{
+                      width: '80%',
+                      backgroundColor: 'red',
+                      color:'white',
+                      margin: '10px'
+                    }}>Settings</Button>
+              <Divider />
+              <Button sx={{
                       width: '50%',
+                      color:'white',
                       backgroundColor: 'gray',
                       margin: '10px'
                     }} onClick={() => {logout()}}>Log Out</Button>

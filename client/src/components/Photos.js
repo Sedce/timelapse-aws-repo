@@ -7,6 +7,7 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
+import { Typography } from '@mui/material';
 
 const style = {
   position: 'absolute',
@@ -152,6 +153,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
                   alt={item.date_taken}
                   loading="lazy"
                 />
+                <Typography>{item.date_taken}</Typography>
               </ImageListItem>
             ))}
           </ImageList>

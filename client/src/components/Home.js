@@ -193,6 +193,7 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setA
                                        onClick={() => showPhotosComponent(camera.album)}
                                        onDelete={() => deleteCamera(camera.id)}
                                        status={camera.status}
+                                       cameraID={camera.album}
                                    />
                                </Grid>
                            ))}
@@ -232,8 +233,8 @@ const DisabledBackground = styled(Box)({
     <Box sx={{ p: 1 }}>
       <Grid container wrap="nowrap">
         {Array.from(new Array(3)).map((item, index) => (
-          <Box key={index} sx={{ width: 210, marginRight: 1, my: 2 }}>
-            <Skeleton variant="rectangular" width={210} height={118} />
+          <Box key={index} sx={{ width: 300, marginRight: 1, my: 2 }}>
+            <Skeleton variant="rectangular" width={300} height={200} />
             <Box sx={{ pt: 0.5 }}>
               <Skeleton />
               <Skeleton width="60%" />
