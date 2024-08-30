@@ -1,6 +1,7 @@
 from flask_restx import Namespace, Resource, fields
 from models import Camera
-from flask_jwt_extended import jwt_required
+from models import CameraPermission
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import request
 from datetime import timedelta, datetime
 from sqlalchemy.sql import func
@@ -44,10 +45,28 @@ class HelloResource(Resource):
 @camera_ns.route("/cameras")
 class CamerasResource(Resource):
     @camera_ns.marshal_list_with(camera_model)
+    @jwt_required()
     def get(self):
-        """Get all cameras"""
-        cameras = Camera.query.all()
-        return cameras
+         try:
+            """Get all cameras the user has permission to access"""
+            print("im here")
+            # Get the current user's ID
+            current_user_id = get_jwt_identity()
+            print(current_user_id)
+            permitted_camera_ids = (
+                CameraPermission.query.with_entities(CameraPermission.cameraid)
+                .filter_by(username=current_user_id).all()
+            )
+            print("permitted camera_id")
+            print(permitted_camera_ids)
+            permitted_camera_ids_list = [id for (id,) in permitted_camera_ids]
+            # Query to get the cameras the user has access to
+            cameras = Camera.query.filter(Camera.id.in_(permitted_camera_ids_list)).all()
+            print(cameras)
+            return cameras
+         except Exception as e:
+            print(e)
+            return {"message": str(e)}, 500
 
     @camera_ns.marshal_with(camera_model)
     @camera_ns.expect(camera_model)
@@ -64,7 +83,6 @@ class CamerasResource(Resource):
         new_camera.save()
 
         return new_camera, 201
-
 
 @camera_ns.route("/camera/<int:id>")
 class CameraResource(Resource):
@@ -102,7 +120,6 @@ class CameraResource(Resource):
 @camera_ns.route('/cameracheckin', methods=['POST'])
 class CameraCheckinResource(Resource):
     @camera_ns.marshal_with(camera_model)
-    # Remove the @jwt_required() decorator
     def post(self):
         try:
             # Extract camera ID from the request data

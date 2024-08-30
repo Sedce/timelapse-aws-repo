@@ -21,35 +21,52 @@ const LoginPage=()=>{
     
 
 
-    const loginUser=(data)=>{
-       console.log(data)
-
-       const requestOptions={
-           method:"POST",
-           headers:{
-               'content-type':'application/json'
-           },
-           body:JSON.stringify(data)
-       }
+    const loginUser = (data) => {
+        console.log(data); // Logging user input data
+    
+        const requestOptions = {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data), // Convert the user data to a JSON string
+        };
         
-       fetch('/auth/login',requestOptions)
-       .then(res=>res.json())
-       .then(data=>{
-           console.log(data.access_token)
-           
-           if (data){
-            login(data.access_token)
-            console.log("logging in!")
-            history.push('/')
-           }
-           else{
-               alert('Invalid username or password')
-           }
-
-
-       })
-       reset()
-    }
+        fetch('/auth/login', requestOptions)
+        .then(res => {
+            if (!res.ok) {
+                // Handle HTTP errors
+                throw new Error('Login failed');
+            }
+            return res.json(); // Parse the JSON response
+        })
+        .then(data => {
+            console.log(data.access_token); // Logging the received access token
+            
+            if (data && data.access_token) {
+                // Save the tokens in localStorage
+                localStorage.setItem('access_token', data.access_token);
+                localStorage.setItem('refresh_token', data.refresh_token); // If you are using refresh tokens
+                
+                console.log(data.access_token)
+                // Optional: Call the login function from createAuthProvider
+                login(data.access_token);
+    
+                console.log("Logging in!");
+                
+                // Redirect to the home page or another route
+                history.push('/');
+            } else {
+                alert('Invalid username or password');
+            }
+        })
+        .catch(err => {
+            console.error('Error during login:', err.message); // Log any error that occurred during the fetch
+            alert('Login failed. Please try again.');
+        });
+    
+        reset(); // Reset the form fields (assuming reset is a function that does this)
+    };
 
     return(
         <div className="container">

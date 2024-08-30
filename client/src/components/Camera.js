@@ -25,7 +25,7 @@ const Camera=({onClick, name, status, cameraID, setShow})=>{
 
     return(
           <Box sx={{ border: 'solid', borderColor: status ? 'green' : 'red', padding: '2px' }}>
-            <Card sx={{ maxWidth: 340 }}>
+            <Card>
               <CardActionArea>
                 <CardMedia
                   onClick={onClick}

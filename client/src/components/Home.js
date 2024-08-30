@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Box, FormControlLabel, FormGroup, Checkbox, Radio, RadioGroup, FormControl, FormLabel } from '@mui/material';
+import { Box, FormControl, FormLabel } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { Link } from 'react-router-dom'
-import { useAuth } from '../auth'
+import { useAuth, authFetch } from '../auth'
 import Camera from './Camera'
 import { Modal, Button} from 'react-bootstrap'
 import { useForm } from 'react-hook-form'
@@ -45,22 +45,48 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setA
     const {register,handleSubmit,setValue,formState:{errors}}=useForm()
     const [showPhotos, setShowPhotos] = useState(false);
     const [cameraId,setCameraId]=useState(2);
+    const [authState] = useAuth();
     const [loading, setLoading] = useState({
         circular: false,
         linear: false,
         skeleton: false
       });
 
-    useEffect(
-        () => {
-            fetch('/camera/cameras')
-                .then(res => res.json())
-                .then(data => {
-                    setCameras(data)
-                })
-                .catch(err => console.log(err))
-        }, []
-    );
+    let token=localStorage.getItem('REACT_TOKEN_AUTH_KEY')
+
+    useEffect(() => {
+      // Retrieve token from localStorage
+      const token = localStorage.getItem('access_token');
+      
+      // Check if token exists
+      if (token) {
+          const requestOptions = {
+              method: 'GET', // Ensure method matches the server endpoint
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`, // Ensure the token is correct
+              },
+          };
+
+          // Make the fetch request
+          fetch('/camera/cameras', requestOptions)
+              .then(response => {
+                  if (!response.ok) {
+                      return response.json().then(err => {
+                          throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(err)}`);
+                      });
+                  }
+                  return response.json();
+              })
+              .then(data => {
+                  setCameras(data);
+              })
+              .catch(err => {
+                  console.error('Error fetching cameras:', err);
+              });
+      }
+  }, []);
+
 
     const getAllCameras=()=>{
         fetch('/camera/cameras')
@@ -83,13 +109,9 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setA
         setShowCalendar(true);
         setShowPhotos(true);
     }
-    let token=localStorage.getItem('REACT_TOKEN_AUTH_KEY')
 
     const updateCamera=(data)=>{
         console.log(data)
-
-        
-
         const requestOptions={
             method:'PUT',
             headers:{
@@ -98,7 +120,6 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setA
             },
             body:JSON.stringify(data)
         }
-
 
         fetch(`/camera/camera/${cameraId}`,requestOptions)
         .then(res=>res.json())
@@ -124,8 +145,6 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setA
                 'Authorization':`Bearer ${JSON.parse(token)}`
             }
         }
-
-
         fetch(`/camera/camera/${id}`,requestOptions)
         .then(res=>res.json())
         .then(data=>{

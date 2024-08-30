@@ -154,3 +154,25 @@ class Photos(db.Model):
         """
         db.session.commit()
 
+class CameraPermission(db.Model):
+    __tablename__ = "camera_permissions"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    userid = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    cameraid = db.Column(db.Integer, db.ForeignKey('camera_parameters.id'), nullable=False)
+    username = db.Column(db.String(255), nullable=True) 
+
+    # Relationships
+    user = db.relationship('User', backref=db.backref('camera_permissions', cascade="all, delete-orphan"))
+    camera = db.relationship('Camera', backref=db.backref('camera_permissions', cascade="all, delete-orphan"))
+
+    def __repr__(self):
+        return f'<CameraPermission userid={self.userid} cameraid={self.cameraid}>'
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+

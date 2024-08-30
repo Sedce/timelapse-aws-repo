@@ -120,79 +120,101 @@ const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
           </Box>
         </Modal>
         {logged && (
-          <Box sx={{ display: 'flex'}}>
-            <CssBaseline />
-            <Drawer
+          <Box sx={{ display: 'flex' }}>
+  <CssBaseline />
+  <Drawer
+    sx={{
+      width: drawerWidth,
+      flexShrink: 0,
+      '& .MuiDrawer-paper': {
+        width: drawerWidth,
+        boxSizing: 'border-box',
+        paddingTop: '20px',
+        backgroundColor: 'rgba(0,0,0,0.1)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center', // Center content horizontally
+        justifyContent: 'space-between', // Adjust spacing
+      },
+    }}
+    variant="permanent"
+    anchor="left"
+  >
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Box
+          component="img"
+          sx={{
+            height: 'auto',
+            width: 233,
+            margin: '10px',
+          }}
+          src={evvpLogo}
+        />
+        {showCalendar && (
+          <>
+            <Divider sx={{ width: '80%' }} />
+            <div className='calendarWrapper' style={{ width: '80%', marginTop: '10px' }}>
+              <DateRange
+                style={{ backgroundColor: "rgb(0,0,0,1)" }}
+                editableDateInputs={true}
+                onChange={item => setState([item.selection])}
+                moveRangeOnFirstSelection={false}
+                showDateDisplay={false}
+                showMonthAndYearPickers={false}
+                ranges={state}
+              />
+            </div>
+            <Button
               sx={{
-                width: drawerWidth,
-                flexShrink: 0,
-                '& .MuiDrawer-paper': {
-                  width: drawerWidth,
-                  boxSizing: 'border-box',
-                  paddingTop: '20px',
-                  backgroundColor: 'rgba(0,0,0,0.1)',
-                },
+                width: '80%',
+                backgroundColor: '#bdbdbd',
+                margin: '10px',
               }}
-              variant="permanent"
-              anchor="left"
+              onClick={() => { generate_timelapse() }}
             >
-              <Box>
-              <Box
-                component="img"
-                sx={{
-                  height: '100%',
-                  width: 233,
-                  margin: '10px',
-                }}
-                src={evvpLogo}
-                > 
-                </Box>
-              </Box>
-              
-              {showCalendar && (
-              <>
-              <Divider />
-              <div className='calendarWrapper'>
-                <DateRange
-                  style={{backgroundColor:"rgb(0,0,0,1)"}}
-                  editableDateInputs={true}
-                  onChange={item => setState([item.selection])}
-                  moveRangeOnFirstSelection={false}
-                  showDateDisplay={false}
-                  showMonthAndYearPickers={false}
-                  ranges={state}
-                />
-                </div>
-              <Button sx={{
-                  width: '80%',
-                  backgroundColor: '#bdbdbd',
-                  margin: '10px',
-                  }}
-                 onClick={() => {generate_timelapse()}}>Generate Timelapse</Button>
-              <Divider />
-              </> )}
-              <Button sx={{
-                      width: '80%',
-                      backgroundColor: 'red',
-                      color:'white',
-                      marginTop: '30px'
-                    }} onClick={() => {archive()}}>Archive</Button>
-              <Divider />
-              <Button sx={{
-                      width: '80%',
-                      backgroundColor: 'red',
-                      color:'white',
-                      marginTop: '10px'
-                    }}>Settings</Button>
-              <Divider />
-              <Button sx={{
-                      width: '50%',
-                      color:'white',
-                      backgroundColor: 'gray',
-                      margin: '10px'
-                    }} onClick={() => {logout()}}>Log Out</Button>
-            </Drawer>
-          </Box>
+              Generate Timelapse
+            </Button>
+            <Divider sx={{ width: '80%' }} />
+          </>
+        )}
+        <Button
+          sx={{
+            width: '80%',
+            backgroundColor: 'red',
+            color: 'white',
+            marginTop: '30px',
+          }}
+          onClick={() => { archive() }}
+        >
+          Archive
+        </Button>
+        <Divider sx={{ width: '80%' }} />
+        <Button
+          sx={{
+            width: '80%',
+            backgroundColor: 'red',
+            color: 'white',
+            marginTop: '10px',
+          }}
+        >
+          Settings
+        </Button>
+        <Divider sx={{ width: '80%' }} />
+        <Button
+          sx={{
+            width: '50%',
+            color: 'white',
+            backgroundColor: 'gray',
+            margin: '10px',
+          }}
+          onClick={() => { logout() }}
+        >
+          Log Out
+        </Button>
+      </Box>
+    </Drawer>
+  </Box>
+
         )}
       </>
     );
