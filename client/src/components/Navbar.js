@@ -49,7 +49,6 @@ const videoStyle = {
 const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
 
     const [logged] = useAuth();
-    const [age, setAge] = React.useState('');
     const [open, setOpen] = useState(false)
     const [state, setState] = useState([
       {
@@ -132,7 +131,6 @@ const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
                   boxSizing: 'border-box',
                   paddingTop: '20px',
                   backgroundColor: 'rgba(0,0,0,0.1)',
-                  borderRight: '0.5px solid white',
                 },
               }}
               variant="permanent"
@@ -142,10 +140,9 @@ const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
               <Box
                 component="img"
                 sx={{
-                  height: 233,
+                  height: '100%',
                   width: 233,
                   margin: '10px',
-                  marginBottom: "10px"
                 }}
                 src={evvpLogo}
                 > 
@@ -178,14 +175,14 @@ const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
                       width: '80%',
                       backgroundColor: 'red',
                       color:'white',
-                      margin: '10px'
+                      marginTop: '30px'
                     }} onClick={() => {archive()}}>Archive</Button>
               <Divider />
               <Button sx={{
                       width: '80%',
                       backgroundColor: 'red',
                       color:'white',
-                      margin: '10px'
+                      marginTop: '10px'
                     }}>Settings</Button>
               <Divider />
               <Button sx={{

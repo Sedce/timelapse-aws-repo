@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react'
+import { Box, FormControlLabel, FormGroup, Checkbox, Radio, RadioGroup, FormControl, FormLabel } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth'
 import Camera from './Camera'
-import { Modal ,Form,Button} from 'react-bootstrap'
+import { Modal, Button} from 'react-bootstrap'
 import { useForm } from 'react-hook-form'
 import ViewPhotosPage from './Photos'
 import ViewArchivePage from './Archive'
-import { Grid } from '@mui/material'
+import { Grid, Typography } from '@mui/material'
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import Skeleton from "@mui/material/Skeleton";
 import { styled } from "@mui/system";
-import Box from '@mui/material/Box';
 import CircularProgress from "@mui/material/CircularProgress";
 
 const theme = createTheme({
@@ -138,44 +139,45 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setA
     return (
         <div className="recipes-container">
             <Modal
+                BackdropProps={{
+                    sx: { backgroundColor: 'black' },
+                  }}
                 show={show}
                 size="lg"
                 onHide={closeModal}
             >
                 <Modal.Header closeButton>
                     <Modal.Title>
-                        Update Camera
+                        <Typography sx={{ color:'black'}}>Update Camera</Typography>
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                    <form>
-                        <Form.Group>
-                            <Form.Label>Title</Form.Label>
-                            <Form.Control type="text"
-                                {...register('title', { required: true, maxLength: 25 })}
-                            />
-                        </Form.Group>
-                        {errors.title && <p style={{ color: 'red' }}><small>Title is required</small></p>}
-                        {errors.title?.type === "maxLength" && <p style={{ color: 'red' }}>
-                            <small>Title should be less than 25 characters</small>
-                        </p>}
-                        <Form.Group>
-                            <Form.Label>Description</Form.Label>
-                            <Form.Control as="textarea" rows={5}
-                                {...register('description', { required: true, maxLength: 255 })}
-                            />
-                        </Form.Group>
-                        {errors.description && <p style={{ color: 'red' }}><small>Description is required</small></p>}
-                        {errors.description?.type === "maxLength" && <p style={{ color: 'red' }}>
-                            <small>Description should be less than 255 characters</small>
-                        </p>}
-                        <br></br>
-                        <Form.Group>
-                            <Button variant="primary" onClick={handleSubmit(updateCamera)}>
-                                Save
-                            </Button>
-                        </Form.Group>
-                    </form>
+                <Modal.Body
+                sx={{background:'black'}}
+                >
+                    <Box
+                        sx={{
+                        width: '100%',
+                        height: 200,
+                        backgroundColor: grey[300],
+                        borderRadius: 2,
+                        mb: 2,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        }}
+                    >
+                    <img
+                    src={'https://www.freeiconspng.com/thumbs/camera-photo-png/vintage-camera-png-images-for--camera-png--23.png'}
+                    loading="lazy"
+                    />              
+                    </Box>
+                    <FormControl component="fieldset">
+                        <FormLabel component="legend" sx={{color:"black"}}>Camera ID</FormLabel>
+                        <FormLabel sx={{color:"black"}}>Status</FormLabel>
+                        <FormLabel sx={{color:"black"}}>Name  <input></input></FormLabel>
+                        <FormLabel sx={{color:"black"}}>Photo Interval  <input></input></FormLabel>
+                    </FormControl>
+                <Button>Save</Button>
                 </Modal.Body>
             </Modal>
             {showVideos && <ViewArchivePage setShowVideos={setShowVideos}/>}
@@ -194,6 +196,7 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setA
                                        onDelete={() => deleteCamera(camera.id)}
                                        status={camera.status}
                                        cameraID={camera.album}
+                                       setShow={setShow}
                                    />
                                </Grid>
                            ))}
