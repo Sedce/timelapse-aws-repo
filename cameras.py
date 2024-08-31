@@ -57,8 +57,6 @@ class CamerasResource(Resource):
                 CameraPermission.query.with_entities(CameraPermission.cameraid)
                 .filter_by(username=current_user_id).all()
             )
-            print("permitted camera_id")
-            print(permitted_camera_ids)
             permitted_camera_ids_list = [id for (id,) in permitted_camera_ids]
             # Query to get the cameras the user has access to
             cameras = Camera.query.filter(Camera.id.in_(permitted_camera_ids_list)).all()

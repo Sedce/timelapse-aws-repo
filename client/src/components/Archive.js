@@ -7,7 +7,7 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
-import { Card, CardMedia, CardContent } from '@mui/material';
+import { Card, CardMedia, CardContent, Typography } from '@mui/material';
 
 const style = {
     position: 'absolute',
@@ -34,7 +34,7 @@ const style = {
     height: '100%',
   };
 
-const ViewArchivePage = ({ setShowVideos, setShowCalendar, cameraID }) => {
+const ViewArchivePage = ({ setShowVideos }) => {
 
   const ITEMS_PER_PAGE = 9; // Number of items to display per page
 
@@ -50,7 +50,6 @@ const ViewArchivePage = ({ setShowVideos, setShowCalendar, cameraID }) => {
     fetch('/photos/videos')
       .then(res => res.json())
       .then(data => {
-        console.log(data)
         setVideoThumbnail(data.videos)
       })
       .catch(err => console.log(err));
@@ -131,6 +130,7 @@ const ViewArchivePage = ({ setShowVideos, setShowCalendar, cameraID }) => {
                 style={{ width: '100%', height: 'auto' }}
                 controls
             />
+            <Typography>{videoUrl}</Typography>
             </ImageListItem>
         ))}
         </ImageList>

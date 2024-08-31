@@ -9,11 +9,7 @@ const CreateCameraPage = () => {
     const [show,setShow]=useState(false);
 
     const createCamera = (data) => {
-        console.log(data)
-
         const token = localStorage.getItem('REACT_TOKEN_AUTH_KEY');
-        console.log(token)
-
         const requestOptions = {
             method: 'POST',
             headers: {

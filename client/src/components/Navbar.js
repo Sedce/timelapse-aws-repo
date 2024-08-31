@@ -46,21 +46,24 @@ const videoStyle = {
 };
 
 
-const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
+const NavBar = ({showCalendar, setShowVideos, albumID, state, setState}) => {
 
     const [logged] = useAuth();
     const [open, setOpen] = useState(false)
-    const [state, setState] = useState([
-      {
-        startDate: new Date(),
-        endDate: new Date(),
-        key: 'selection',
-        color:'red'
-      }
-    ]);
     const handleClose = () => setOpen(false); 
     const archive = () => setShowVideos(true); 
     const [videoURL, setVideoURL] = useState(''); 
+    const [disabled, setDisabled] = useState(true)
+
+    const handleDateChange = (item) => {
+      // Update the state with the new selection
+      setState([item.selection]);
+    
+      // Check if both startDate and endDate are set, then enable the button
+      if (item.selection.startDate && item.selection.endDate) {
+        setDisabled(false);
+      }
+    };
 
     const generate_timelapse = async () =>  {
 
@@ -69,7 +72,7 @@ const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
       formData.append('begin_date', state[0]?.startDate);  // Replace with actual begin date
       formData.append('end_date', state[0]?.endDate);    // Replace with actual end date
 
-      console.log(formData)
+
       try {
         const response = await fetch(`/photos/generate_timelapse/` + albumID, {
           method: 'POST',
@@ -153,11 +156,11 @@ const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
         {showCalendar && (
           <>
             <Divider sx={{ width: '80%' }} />
-            <div className='calendarWrapper' style={{ width: '80%', marginTop: '10px' }}>
+            <div className='calendarWrapper' style={{ width: '100%', marginTop: '10px' }}>
               <DateRange
-                style={{ backgroundColor: "rgb(0,0,0,1)" }}
+                style={{ backgroundColor: "rgb(0,0,0,0.9)" }}
                 editableDateInputs={true}
-                onChange={item => setState([item.selection])}
+                onChange={handleDateChange}
                 moveRangeOnFirstSelection={false}
                 showDateDisplay={false}
                 showMonthAndYearPickers={false}
@@ -167,9 +170,11 @@ const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
             <Button
               sx={{
                 width: '80%',
-                backgroundColor: '#bdbdbd',
+                backgroundColor: 'red',
+                color: 'white',
                 margin: '10px',
               }}
+              disabled={disabled}
               onClick={() => { generate_timelapse() }}
             >
               Generate Timelapse
@@ -186,7 +191,7 @@ const NavBar = ({showCalendar, setShowVideos, albumID, setAlbumID}) => {
           }}
           onClick={() => { archive() }}
         >
-          Archive
+          Generated Timelapses
         </Button>
         <Divider sx={{ width: '80%' }} />
         <Button

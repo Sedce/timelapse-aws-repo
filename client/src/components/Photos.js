@@ -35,11 +35,12 @@ const imageStyle = {
   height: 'auto',
 };
 
-const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loading }) => {
+const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loading, state, setState }) => {
 
   const ITEMS_PER_PAGE = 9; // Number of items to display per page
 
-  const [photoThumbnail, setPhotoThumbnail] = useState();
+  const [photoThumbnail, setPhotoThumbnail] = useState([]);
+  const [filteredPhotoThumbnail, setFilteredPhotoThumbnail] = useState([]);
   const [photo, setPhoto] = useState();
   const [currentPage, setCurrentPage] = useState(1);
   const [open, setOpen] = React.useState(false);
@@ -53,23 +54,40 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
       .then(res => res.json())
       .then(data => {
         setPhotoThumbnail(data);
+        setFilteredPhotoThumbnail(data);
         setLoading(prevLoading => ({ ...prevLoading, skeleton: false }));
       })
       .catch(err => console.log(err));
   }, []);
 
+  useEffect(() => {
+    
+    if(state && photoThumbnail.length > 0){
+      const startDate = state[0]?.startDate;
+      const endDate = state[0]?.endDate;
+
+      const filtered = photoThumbnail?.filter(item => {
+        const dateTaken = new Date(item.date_taken);
+        return dateTaken >= new Date(startDate)  && dateTaken <= new Date(endDate) ;
+      });
+      console.log(filtered)
+      setFilteredPhotoThumbnail(filtered);
+    }
+  }, [state]); // Recompute when state or photoThumbnails changes
 
 
-  const totalPages = Math.ceil(photoThumbnail?.length / ITEMS_PER_PAGE);
+
+  const totalPages = Math.ceil(filteredPhotoThumbnail?.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentItems = photoThumbnail?.length > 0 ? photoThumbnail?.slice(startIndex, endIndex) : [];
+  const currentItems = filteredPhotoThumbnail?.length > 0 ? filteredPhotoThumbnail?.slice(startIndex, endIndex) : [];
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
 
   const handleButtonClick = () => {
+    setState([])
     setShowCalendar(false);
     setShow(false);
   }
@@ -77,7 +95,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
   const onThumbnailClick = (index) => {
     setCurrentIndex(index);
     setLoading({ ...loading, ["circular"]: true })
-    fetch(`/photos/photo/${photoThumbnail[index]?.id}`)
+    fetch(`/photos/photo/${filteredPhotoThumbnail[index]?.id}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -98,7 +116,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
     if (currentIndex > 0) {
       const prevIndex = currentIndex - 1;
       setCurrentIndex(prevIndex);
-      fetch(`/photos/photo/${photoThumbnail[prevIndex].id}`)
+      fetch(`/photos/photo/${filteredPhotoThumbnail[prevIndex].id}`)
         .then(response => response.json())
         .then(data => setPhoto(data))
         .catch(error => console.error('Error fetching photo:', error));
@@ -106,10 +124,10 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
   }
 
   const handleNextClick = () => {
-    if (currentIndex < photoThumbnail?.length - 1) {
+    if (currentIndex < filteredPhotoThumbnail?.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
-      fetch(`/photos/photo/${photoThumbnail[nextIndex].id}`)
+      fetch(`/photos/photo/${filteredPhotoThumbnail[nextIndex].id}`)
         .then(response => response.json())
         .then(data => setPhoto(data))
         .catch(error => console.error('Error fetching photo:', error));
@@ -135,14 +153,15 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
                 alt="Photo"
                 style={imageStyle}
               />
-              <button onClick={handleNextClick} disabled={currentIndex === photoThumbnail?.length - 1} style={{ marginLeft: '10px' }}>
+              <button onClick={handleNextClick} disabled={currentIndex === filteredPhotoThumbnail?.length - 1} style={{ marginLeft: '10px' }}>
                 &gt; {/* Right arrow */}
               </button>
             </div>
           </Fade>
         </Box>
       </Modal>
-      <button id="Back Button" onClick={handleButtonClick}>Back</button>
+
+      <div><button id="Back Button" onClick={handleButtonClick}>Back</button></div>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <ImageList cols={3} gap={8}>

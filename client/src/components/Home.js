@@ -39,7 +39,7 @@ const theme = createTheme({
       },
     });
 
-const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setAlbumID}) => {
+const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setAlbumID, state, setState}) => {
     const [cameras, setCameras] = useState([]);
     const [show, setShow] = useState(false);
     const {register,handleSubmit,setValue,formState:{errors}}=useForm()
@@ -202,7 +202,7 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setA
             {showVideos && <ViewArchivePage setShowVideos={setShowVideos}/>}
             {loading.skeleton ? <SkeletonLoading /> : null}
             {loading.circular ? <CircularLoading /> : null}
-            {showPhotos && <ViewPhotosPage cameraID={cameraId} setShowCalendar={setShowCalendar} setShow={setShowPhotos} loading={loading} setLoading={setLoading}/>}
+            {showPhotos && <ViewPhotosPage cameraID={cameraId} setShowCalendar={setShowCalendar} setShow={setShowPhotos} loading={loading} setLoading={setLoading} state={state} setState={setState}/>}
             {(!showPhotos && !showVideos )&& (
                        <>
                        <Grid container spacing={2} padding='100px'>
@@ -276,14 +276,14 @@ const LoggedOutHome = () => {
     )
 }
 
-const HomePage = ({setShowVideos, setShowCalendar, showVideos, albumID, setAlbumID}) => {
+const HomePage = ({setShowVideos, setShowCalendar, showVideos, albumID, setAlbumID, state, setState}) => {
 
     const [logged] = useAuth();
     return (
         <ThemeProvider theme={theme}>
         <div>
             {logged ? <LoggedinHome setShowVideos={setShowVideos} setShowCalendar={setShowCalendar} showVideos={showVideos} albumID={albumID}
-                        setAlbumID={setAlbumID}/> : <LoggedOutHome />}
+                        setAlbumID={setAlbumID} state={state} setState={setState}/> : <LoggedOutHome />}
         </div>
         </ThemeProvider>
     )
