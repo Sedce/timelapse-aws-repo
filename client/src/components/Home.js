@@ -55,37 +55,69 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setA
     let token=localStorage.getItem('REACT_TOKEN_AUTH_KEY')
 
     useEffect(() => {
-      // Retrieve token from localStorage
-      const token = localStorage.getItem('access_token');
-      
-      // Check if token exists
-      if (token) {
-          const requestOptions = {
-              method: 'GET', // Ensure method matches the server endpoint
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`, // Ensure the token is correct
-              },
-          };
-
-          // Make the fetch request
-          fetch('/camera/cameras', requestOptions)
-              .then(response => {
-                  if (!response.ok) {
-                      return response.json().then(err => {
-                          throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(err)}`);
-                      });
-                  }
-                  return response.json();
-              })
-              .then(data => {
-                  setCameras(data);
-              })
-              .catch(err => {
-                  console.error('Error fetching cameras:', err);
-              });
-      }
-  }, []);
+        const fetchCameras = async () => {
+            try {
+                // Retrieve tokens from localStorage
+                let token = localStorage.getItem('access_token');
+                const refreshToken = localStorage.getItem('refresh_token');
+    
+                if (!token) return;
+    
+                const requestOptions = {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                };
+    
+                // Make the fetch request
+                let response = await fetch('/camera/cameras', requestOptions);
+    
+                // If the token is expired, refresh it
+                if (response.status === 401) {
+                    if (refreshToken) {
+                        // Attempt to refresh the token
+                        const refreshResponse = await fetch('/auth/refresh', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ token: refreshToken }),
+                        });
+    
+                        if (refreshResponse.ok) {
+                            const refreshData = await refreshResponse.json();
+                            token = refreshData.access_token;
+                            localStorage.setItem('access_token', token);
+    
+                            // Retry the original request with the new token
+                            requestOptions.headers['Authorization'] = `Bearer ${token}`;
+                            response = await fetch('/camera/cameras', requestOptions);
+                        } else {
+                            throw new Error('Token refresh failed');
+                        }
+                    } else {
+                        throw new Error('No refresh token available');
+                    }
+                }
+    
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+                }
+    
+                const data = await response.json();
+                setCameras(data);
+    
+            } catch (err) {
+                console.error('Error fetching cameras:', err);
+            }
+        };
+    
+        fetchCameras();
+    }, []);
+    
 
 
     const getAllCameras=()=>{
