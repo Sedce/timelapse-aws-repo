@@ -60,7 +60,7 @@ const NavBar = ({showCalendar, setShowVideos, albumID, state, setState}) => {
       setState([item.selection]);
     
       // Check if both startDate and endDate are set, then enable the button
-      if (item.selection.startDate && item.selection.endDate) {
+      if (item.selection?.startDate && item.selection?.endDate) {
         setDisabled(false);
       }
     };

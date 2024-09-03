@@ -87,7 +87,14 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
   };
 
   const handleButtonClick = () => {
-    setState([])
+    setState([]); // Clear the state
+    setState([
+      {
+        startDate: new Date(), // Add a new item with default or specific values
+        endDate: new Date(),
+        key: 'selection',
+        color: 'red'
+      }]);
     setShowCalendar(false);
     setShow(false);
   }
