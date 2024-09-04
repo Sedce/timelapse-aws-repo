@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import {useForm} from 'react-hook-form'
 import { login } from '../auth'
 import {useHistory} from 'react-router-dom'
+import evvpLogo from '../styles/EVVAP-WHITE.png';
 import { Box, Typography } from '@mui/material';
 
 
@@ -22,8 +23,7 @@ const LoginPage=()=>{
 
 
     const loginUser = (data) => {
-        console.log(data); // Logging user input data
-    
+        let credentials = data;
         const requestOptions = {
             method: "POST",
             headers: {
@@ -41,13 +41,14 @@ const LoginPage=()=>{
             return res.json(); // Parse the JSON response
         })
         .then(data => {
+
             console.log(data.access_token); // Logging the received access token
-            
+            console.log(credentials.username)
             if (data && data.access_token) {
                 // Save the tokens in localStorage
+                localStorage.setItem('username', credentials.username)
                 localStorage.setItem('access_token', data.access_token);
                 localStorage.setItem('refresh_token', data.refresh_token); // If you are using refresh tokens
-                
                 console.log(data.access_token)
                 // Optional: Call the login function from createAuthProvider
                 login(data.access_token);
@@ -70,7 +71,15 @@ const LoginPage=()=>{
 
     return(
         <div className="container">
-        <h1>Timelapse Management System</h1>
+        <Box
+          component="img"
+          sx={{
+            height: 'auto',
+            width: 233,
+            margin: '10px',
+          }}
+          src={evvpLogo}
+        />
         <Box sx={style}>
             <form style={{padding:'20px'}}>
                 <Typography>Welcome!</Typography>

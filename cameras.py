@@ -2,7 +2,7 @@ from flask_restx import Namespace, Resource, fields
 from models import Camera
 from models import CameraPermission
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from flask import request
+from flask import request, jsonify
 from datetime import timedelta, datetime
 from sqlalchemy.sql import func
 
@@ -14,6 +14,11 @@ camera_ns = Namespace("camera", description="A namespace for Cameras")
 camera_model = camera_ns.model(
     "Camera",
     {"id": fields.Integer(), "camera_id": fields.Integer(), "album": fields.Integer(), "status": fields.Integer(), "name":fields.String()
+})
+
+config_model = camera_ns.model(
+    "Config",
+    {"source": fields.Integer(), "album": fields.Integer(), "timelapse":fields.String()
 })
 
 def check_camera_activities():
@@ -33,14 +38,6 @@ def check_camera_activities():
         # Log or handle cameras that haven't checked in
     except Exception as e:
             print("Exception:", e)
-
-
-
-@camera_ns.route("/hello")
-class HelloResource(Resource):
-    def get(self):
-        return {"message": "Hello World"}
-
 
 @camera_ns.route("/cameras")
 class CamerasResource(Resource):
@@ -117,13 +114,13 @@ class CameraResource(Resource):
 
 @camera_ns.route('/cameracheckin', methods=['POST'])
 class CameraCheckinResource(Resource):
-    @camera_ns.marshal_with(camera_model)
     def post(self):
         try:
             # Extract camera ID from the request data
             data = request.get_json()
+            print(data)
             camera_id = data.get("device_id")
-
+            print(camera_id)
             if not camera_id:
                 return {"message": "Camera ID is required"}, 400
 
@@ -137,6 +134,7 @@ class CameraCheckinResource(Resource):
             check_camera_activities()
 
             # Return the updated camera details
-            return camera_to_update, 200
+            return jsonify([{"source": camera_to_update.source,"album": camera_to_update.album, "timelapse": camera_to_update.timelapse + 300}])
         except Exception as e:
+            print(e)
             return {"message": str(e)}, 500

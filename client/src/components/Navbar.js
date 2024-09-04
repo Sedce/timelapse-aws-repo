@@ -46,12 +46,13 @@ const videoStyle = {
 };
 
 
-const NavBar = ({showCalendar, setShowVideos, albumID, state, setState}) => {
+const NavBar = ({showCalendar, setShowVideos, albumID, state, setState, setShowSettings, loading, setLoading}) => {
 
     const [logged] = useAuth();
-    const [open, setOpen] = useState(false)
+    const [open, setOpen] = useState(false);
     const handleClose = () => setOpen(false); 
     const archive = () => setShowVideos(true); 
+    const settings = () => setShowSettings(true);
     const [videoURL, setVideoURL] = useState(''); 
     const [disabled, setDisabled] = useState(true)
 
@@ -74,6 +75,7 @@ const NavBar = ({showCalendar, setShowVideos, albumID, state, setState}) => {
 
 
       try {
+        setLoading({ ...loading, ["circular"]: true })
         const response = await fetch(`/photos/generate_timelapse/` + albumID, {
           method: 'POST',
           body: formData,
@@ -84,6 +86,7 @@ const NavBar = ({showCalendar, setShowVideos, albumID, state, setState}) => {
         }
 
         const result = await response.json();
+        setLoading({ ...loading, ["circular"]: false })
         setVideoURL('photos/' + result.generated_video_path)
         setOpen(true);
         // You can handle the result here, e.g., display it to the user
@@ -201,6 +204,7 @@ const NavBar = ({showCalendar, setShowVideos, albumID, state, setState}) => {
             color: 'white',
             marginTop: '10px',
           }}
+          onClick={() => { settings() }}
         >
           Settings
         </Button>

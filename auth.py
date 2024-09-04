@@ -76,6 +76,21 @@ class Login(Resource):
         else:
             return jsonify({"message": "Invalid username or password"})
 
+@auth_ns.route("/user")
+class UserResource(Resource):
+    @jwt_required()
+    def get(self):
+
+        current_user = get_jwt_identity()
+
+        db_user = User.query.filter_by(username=current_user).first()
+        
+        if db_user is None:
+            return jsonify({"message": f"User with username {current_user} already exists"})
+        else:
+            print(db_user.username)
+            return make_response(jsonify({"username": db_user.username,"email": db_user.email}), 200)
+
 
 @auth_ns.route("/refresh")
 class RefreshResource(Resource):

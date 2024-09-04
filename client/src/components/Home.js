@@ -8,6 +8,8 @@ import { Modal, Button} from 'react-bootstrap'
 import { useForm } from 'react-hook-form'
 import ViewPhotosPage from './Photos'
 import ViewArchivePage from './Archive'
+import SettingsPage from './Settings';
+import LoginPage from './Login';
 import { Grid, Typography } from '@mui/material'
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import Skeleton from "@mui/material/Skeleton";
@@ -39,18 +41,13 @@ const theme = createTheme({
       },
     });
 
-const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setAlbumID, state, setState}) => {
+const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, setAlbumID, state, setState, showSettings, setShowSettings, loading, setLoading}) => {
     const [cameras, setCameras] = useState([]);
     const [show, setShow] = useState(false);
     const {register,handleSubmit,setValue,formState:{errors}}=useForm()
     const [showPhotos, setShowPhotos] = useState(false);
     const [cameraId,setCameraId]=useState(2);
     const [authState] = useAuth();
-    const [loading, setLoading] = useState({
-        circular: false,
-        linear: false,
-        skeleton: false
-      });
 
     let token=localStorage.getItem('REACT_TOKEN_AUTH_KEY')
 
@@ -232,10 +229,11 @@ const LoggedinHome = ({setShowCalendar, showVideos, setShowVideos, albumID, setA
                 </Modal.Body>
             </Modal>
             {showVideos && <ViewArchivePage setShowVideos={setShowVideos}/>}
+            {showSettings && <SettingsPage setShowSettings={setShowSettings}/>}
             {loading.skeleton ? <SkeletonLoading /> : null}
             {loading.circular ? <CircularLoading /> : null}
             {showPhotos && <ViewPhotosPage cameraID={cameraId} setShowCalendar={setShowCalendar} setShow={setShowPhotos} loading={loading} setLoading={setLoading} state={state} setState={setState}/>}
-            {(!showPhotos && !showVideos )&& (
+            {(!showPhotos && !showVideos && !showSettings)&& (
                        <>
                        <Grid container spacing={2} padding='100px'>
                            {cameras.map((camera) => (
@@ -302,20 +300,19 @@ const DisabledBackground = styled(Box)({
 const LoggedOutHome = () => {
     return (
         <div className="home container">
-            <h1 className="heading">Eagle Vision Video Timelapse</h1>
-            <Link to='/login' className="btn btn-primary btn-lg">Log In</Link>
+            <LoginPage/>
         </div>
     )
 }
 
-const HomePage = ({setShowVideos, setShowCalendar, showVideos, albumID, setAlbumID, state, setState}) => {
+const HomePage = ({setShowVideos, setShowCalendar, showVideos, albumID, setAlbumID, state, setState, showSettings, setShowSettings, loading, setLoading}) => {
 
     const [logged] = useAuth();
     return (
         <ThemeProvider theme={theme}>
         <div>
             {logged ? <LoggedinHome setShowVideos={setShowVideos} setShowCalendar={setShowCalendar} showVideos={showVideos} albumID={albumID}
-                        setAlbumID={setAlbumID} state={state} setState={setState}/> : <LoggedOutHome />}
+                        setAlbumID={setAlbumID} state={state} setState={setState} showSettings={showSettings} setShowSettings={setShowSettings} loading={loading} setLoading={setLoading}/> : <LoggedOutHome />}
         </div>
         </ThemeProvider>
     )
