@@ -8,6 +8,7 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
 import { Typography } from '@mui/material';
+import JSZip from 'jszip';
 
 const style = {
   position: 'absolute',
@@ -111,28 +112,59 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
         setLoading({ ...loading, ["circular"]: false });
         setOpen(true);
   
-        downloadAllPhotos(data)
+        downloadPhotosAsZip(data)
       })
       .catch(error => {
         console.error('Error fetching photos:', error);
       });
   };
 
-  const downloadAllPhotos = (photos) => {
+  const downloadPhotosAsZip = async (photos) => {
+    const zip = new JSZip();
+
+    // Loop through each photo and add it to the ZIP file
     photos.forEach((photo, index) => {
-      downloadImage(photo.photo_data, index);
+      const fileName = `photo_${index + 1}.jpg`;
+      const base64Data = cleanBase64String(photo.photo_data);  // Clean the base64 string
+      
+      // Add the file to the ZIP, convert base64 to binary using `base64ToBinary`
+      zip.file(fileName, base64ToBinary(base64Data), { base64: true });
     });
+
+    // Generate the ZIP file and trigger the download
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    triggerDownload(zipBlob, 'photos.zip');
   };
 
-  const downloadImage = (base64Data, index) => {
+  // Clean the base64 string by removing the 'data:image/jpeg;base64,' prefix
+  const cleanBase64String = (base64Data) => {
+    if (base64Data.startsWith('data:image')) {
+      return base64Data.split(',')[1];
+    }
+    return base64Data;
+  };
+
+  // Convert base64 string to binary
+  const base64ToBinary = (base64Data) => {
+    const sanitizedBase64 = base64Data.replace(/\s/g, '');  // Remove any spaces or newlines
+    const binaryString = window.atob(sanitizedBase64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+  };
+
+  // Function to trigger the download of the generated ZIP file
+  const triggerDownload = (blob, fileName) => {
     const link = document.createElement('a');
-    link.href = `data:image/jpeg;base64,${base64Data}`;
-    link.download = `photo_${index + 1}.jpg`; // Set a custom file name
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link); // Clean up the DOM after download
+    document.body.removeChild(link);  // Clean up the DOM
   };
-  
 
   const onThumbnailClick = (index) => {
     setCurrentIndex(index);
