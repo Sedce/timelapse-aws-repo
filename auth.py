@@ -90,7 +90,29 @@ class UserResource(Resource):
         else:
             print(db_user.username)
             return make_response(jsonify({"username": db_user.username,"email": db_user.email}), 200)
+    @jwt_required()
+    def put(self):
 
+        data = request.get_json()
+        current_user = get_jwt_identity()
+        print(current_user)
+        new_password = data.get("password")
+        
+        # Find the user in the database
+        db_user = User.query.filter_by(username=current_user).first()
+        
+        if db_user is None:
+            return make_response(jsonify({"message": "User not found"}), 404)
+        
+        # Verify the current password
+        if not check_password_hash(db_user.pwd, current_password):
+            return make_response(jsonify({"message": "Current password is incorrect"}), 400)
+        
+        # Hash the new password and update it in the database
+        db_user.pwd = generate_password_hash(new_password)
+        db_user.save()
+        
+        return make_response(jsonify({"message": "Password updated successfully"}), 200)
 
 @auth_ns.route("/refresh")
 class RefreshResource(Resource):

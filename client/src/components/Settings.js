@@ -82,10 +82,29 @@ const SettingsPage = ({ setShowSettings }) => {
 }, []);
 
   const handleButtonClick = () => setShowSettings(false);
-  const handleChangePassword = () => {
+
+  const handleChangePassword= async () => {
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
       return;
+    }
+
+    const response = await fetch('/auth/user', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            password,
+        }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+        console.log("Password changed successfully");
+    } else {
+        console.log("PASSWORD NOT CHANGED");
     }
 
     // Handle password change logic here (e.g., make an API call to update the password)

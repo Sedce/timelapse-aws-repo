@@ -143,6 +143,15 @@ def retrieve_photo_by_id(photo_id):
         print("Error retrieving photo:", err)
         return None
 
+
+def retrieve_photos_by_album_id(album_id):
+    try:
+        photos = Photos.query.with_entities(Photos.photo_data, Photos.date_taken).where(album_id == Photos.album_id).all()
+        return photos
+    except Exception as err:
+        print("Error retrieving photo:", err)
+        return None
+
 def store_photo_in_database(photo_data, album_id, source_name, trigger_type, date_taken, photo_md5):
     try:
         # Create a thumbnail from the photo_data
@@ -275,6 +284,16 @@ class PhotoResource(Resource):
             return {'photo_data': base64.b64encode(photo.photo_data).decode('utf-8'), 'date_taken': photo.date_taken}
         else:
             return "Photo not found", 404
+
+@photos_ns.route('/album/<int:album_id>')
+class AlbumPhotosResource(Resource):
+    @photos_ns.marshal_with(photos_model, as_list=True)
+    def get(self, album_id):
+        photos = retrieve_photos_by_album_id(album_id)  # Retrieve all photos by album_id from the database
+        if photos:
+            return [{'photo_data': base64.b64encode(photo.photo_data).decode('utf-8'), 'date_taken': photo.date_taken} for photo in photos]
+        else:
+            return "No photos found", 404
 
 
 @photos_ns.route('/generate_timelapse/<int:album_id>')

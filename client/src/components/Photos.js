@@ -98,6 +98,41 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
     setShowCalendar(false);
     setShow(false);
   }
+  const handleButtonGetClick = () => {
+    fetch(`photos/album/${1}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setPhoto(data);
+        setLoading({ ...loading, ["circular"]: false });
+        setOpen(true);
+  
+        downloadAllPhotos(data)
+      })
+      .catch(error => {
+        console.error('Error fetching photos:', error);
+      });
+  };
+
+  const downloadAllPhotos = (photos) => {
+    photos.forEach((photo, index) => {
+      downloadImage(photo.photo_data, index);
+    });
+  };
+
+  const downloadImage = (base64Data, index) => {
+    const link = document.createElement('a');
+    link.href = `data:image/jpeg;base64,${base64Data}`;
+    link.download = `photo_${index + 1}.jpg`; // Set a custom file name
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link); // Clean up the DOM after download
+  };
+  
 
   const onThumbnailClick = (index) => {
     setCurrentIndex(index);
@@ -169,6 +204,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
       </Modal>
 
       <div><button id="Back Button" onClick={handleButtonClick}>Back</button></div>
+      <div><button id="Get Button" onClick={handleButtonGetClick}>Get</button></div>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <ImageList cols={3} gap={8}>
