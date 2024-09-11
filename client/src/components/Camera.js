@@ -30,7 +30,7 @@ const Camera=({onClick, name, status, cameraID, setShow})=>{
                 <CardMedia
                   onClick={onClick}
                   component="img"
-                  height="180"
+                  width=""
                   src={`data:image/jpeg;base64,${photoCover?.thumbnail_data}`}
                   alt="camera"
                 />

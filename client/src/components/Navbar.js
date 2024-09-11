@@ -5,10 +5,6 @@ import Drawer from '@mui/material/Drawer';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
 import { Button } from '@mui/material';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
 import 'react-date-range/dist/styles.css'; // main css file
 import 'react-date-range/dist/theme/default.css';
 import { DateRange } from 'react-date-range';
@@ -19,7 +15,7 @@ import evvpLogo from '../styles/EVVAP-WHITE.png';
 import '../styles/main.css';
 
 
-const drawerWidth = 300;
+const drawerWidth = "20%";
 const style = {
   position: 'absolute',
   top: '50%',

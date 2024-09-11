@@ -15,7 +15,7 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: '60%', // Adjust width as needed
+  width: '70%', // Adjust width as needed
   height: '70%',
   overflow: 'hidden', // Hide overflow to ensure image fits within modal
   bgcolor: 'rgb(0,0,0,0.5)',
@@ -99,73 +99,6 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
     setShowCalendar(false);
     setShow(false);
   }
-  const handleButtonGetClick = () => {
-    fetch(`photos/album/${1}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        setPhoto(data);
-        setLoading({ ...loading, ["circular"]: false });
-        setOpen(true);
-  
-        downloadPhotosAsZip(data)
-      })
-      .catch(error => {
-        console.error('Error fetching photos:', error);
-      });
-  };
-
-  const downloadPhotosAsZip = async (photos) => {
-    const zip = new JSZip();
-
-    // Loop through each photo and add it to the ZIP file
-    photos.forEach((photo, index) => {
-      const fileName = `photo_${index + 1}.jpg`;
-      const base64Data = cleanBase64String(photo.photo_data);  // Clean the base64 string
-      
-      // Add the file to the ZIP, convert base64 to binary using `base64ToBinary`
-      zip.file(fileName, base64ToBinary(base64Data), { base64: true });
-    });
-
-    // Generate the ZIP file and trigger the download
-    const zipBlob = await zip.generateAsync({ type: 'blob' });
-    triggerDownload(zipBlob, 'photos.zip');
-  };
-
-  // Clean the base64 string by removing the 'data:image/jpeg;base64,' prefix
-  const cleanBase64String = (base64Data) => {
-    if (base64Data.startsWith('data:image')) {
-      return base64Data.split(',')[1];
-    }
-    return base64Data;
-  };
-
-  // Convert base64 string to binary
-  const base64ToBinary = (base64Data) => {
-    const sanitizedBase64 = base64Data.replace(/\s/g, '');  // Remove any spaces or newlines
-    const binaryString = window.atob(sanitizedBase64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes;
-  };
-
-  // Function to trigger the download of the generated ZIP file
-  const triggerDownload = (blob, fileName) => {
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);  // Clean up the DOM
-  };
-
   const onThumbnailClick = (index) => {
     setCurrentIndex(index);
     setLoading({ ...loading, ["circular"]: true })
@@ -236,7 +169,6 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
       </Modal>
 
       <div><button id="Back Button" onClick={handleButtonClick}>Back</button></div>
-      <div><button id="Get Button" onClick={handleButtonGetClick}>Get</button></div>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <ImageList cols={3} gap={8}>
