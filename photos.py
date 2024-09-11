@@ -1,8 +1,8 @@
 
-from flask_restx import Namespace, Resource, fields, reqparse
+from flask_restx import Namespace, Resource, fields, reqparse 
 from models import Photos
 from flask_jwt_extended import jwt_required
-from flask import request, jsonify, send_from_directory, request
+from flask import request, jsonify, send_from_directory, request, Response
 from datetime import timedelta, datetime, time
 import re
 # Third-Party Imports
@@ -216,6 +216,30 @@ def retrieve_latest_photo_for_album(album_id):
         photo = None
     return photo
 
+def retrieve_latest_photo(album_id):
+
+    try:
+        photo = Photos.query.with_entities(Photos.photo_data, Photos.date_taken).filter(Photos.album_id == album_id).order_by(Photos.date_taken.desc()).first()
+    except Exception as err:
+        photo = None
+    return photo
+
+@photos_ns.route('/latest_photo_album/<int:album_id>')
+class PhotoResource(Resource):
+    def get(self, album_id):
+        try:
+            print("here")
+            photo = retrieve_latest_photo(album_id)
+            date_taken = photo['date_taken']
+
+            photo_data_base64 = base64.b64encode(photo.photo_data).decode('utf-8')
+
+            # Construct the image data URL
+            image_data = f"data:image/jpeg;base64,{photo_data_base64}"
+              
+            return Response(f"<img src='{image_data}' alt='Photo' />", mimetype='text/html')
+        except Exception as e:
+                return f"Error generating timelapse: {e}"
 
 @photos_ns.route('/latest_photo/<int:album_id>')
 class PhotoResource(Resource):
@@ -230,6 +254,9 @@ class PhotoResource(Resource):
                 })
         except Exception as e:
                 return f"Error generating timelapse: {e}"
+
+                
+                
 
 @photos_ns.route('/view_photos/<int:album_id>', methods=['GET', 'POST'])
 class PhotosResource(Resource):
