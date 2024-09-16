@@ -104,10 +104,6 @@ class UserResource(Resource):
         if db_user is None:
             return make_response(jsonify({"message": "User not found"}), 404)
         
-        # Verify the current password
-        if not check_password_hash(db_user.pwd, current_password):
-            return make_response(jsonify({"message": "Current password is incorrect"}), 400)
-        
         # Hash the new password and update it in the database
         db_user.pwd = generate_password_hash(new_password)
         db_user.save()

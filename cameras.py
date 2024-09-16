@@ -118,9 +118,7 @@ class CameraCheckinResource(Resource):
         try:
             # Extract camera ID from the request data
             data = request.get_json()
-            print(data)
             camera_id = data.get("device_id")
-            print(camera_id)
             if not camera_id:
                 return {"message": "Camera ID is required"}, 400
 

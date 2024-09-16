@@ -12,25 +12,33 @@ const SettingsPage = ({ setShowSettings }) => {
   const [error, setError] = useState('');
   const [user, setUser] = useState('')
 
-  useEffect(() => {
-    const fetchCameras = async () => {
-        try {
+  const handleButtonClick = () => setShowSettings(false);
+
+  const handleChangePassword= async () => {
+    if (password !== confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
+    try {
             // Retrieve tokens from localStorage
             let item = localStorage.getItem('username');
             console.log(item)
             setUser(localStorage.getItem('username'));
 
             let token = localStorage.getItem('access_token');
+            
             const refreshToken = localStorage.getItem('refresh_token');
-            console.log('here')
             if (!token) return;
 
             const requestOptions = {
-                method: 'GET',
+                method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                  password,
+              }),
             };
             // Make the fetch request
             let response = await fetch('/auth/user', requestOptions);
@@ -64,52 +72,16 @@ const SettingsPage = ({ setShowSettings }) => {
                 }
             }
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`);
+            if (response.ok) {
+              console.log("Password changed successfully");
+            } else {
+                console.log("PASSWORD NOT CHANGED");
             }
-
-            const data = await response.json();
-            console.log(data)
-            setUser(data);
 
         } catch (err) {
             console.error('Error fetching cameras:', err);
         }
-    };
-
-    fetchCameras();
-}, []);
-
-  const handleButtonClick = () => setShowSettings(false);
-
-  const handleChangePassword= async () => {
-    if (password !== confirmPassword) {
-      setError("Passwords do not match!");
-      return;
     }
-
-    const response = await fetch('/auth/user', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            password,
-        }),
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-        console.log("Password changed successfully");
-    } else {
-        console.log("PASSWORD NOT CHANGED");
-    }
-
-    // Handle password change logic here (e.g., make an API call to update the password)
-    console.log("Password changed successfully");
-  };
 
   return (
     <Container>
