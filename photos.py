@@ -211,8 +211,7 @@ def retrieve_thumbnails_by_album_id_within_date_range(album_id, table_name = 'ph
 def retrieve_latest_photo_for_album(album_id):
 
     try:
-        photo_id = Photos.query.with_entities(Photos.id).filter(Photos.album_id == album_id).order_by(Photos.date_taken.desc()).first()
-        photo = photo = Photos.query.with_entities(Photos.photo_data, Photos.date_taken).where(photo_id == Photos.id).first()
+        photo = Photos.query.with_entities(Photos.thumbnail_data, Photos.date_taken).filter(Photos.album_id == album_id).order_by(Photos.date_taken.desc()).first()
     except Exception as err:
         photo = None
     return photo
@@ -220,8 +219,8 @@ def retrieve_latest_photo_for_album(album_id):
 def retrieve_latest_photo(album_id):
 
     try:
-        photo = Photos.query.with_entities(Photos.photo_data, Photos.date_taken).filter(Photos.album_id == album_id).order_by(Photos.date_taken.desc()).first()
-
+        photo_id = Photos.query.with_entities(Photos.id).filter(Photos.album_id == album_id).order_by(Photos.date_taken.desc()).first()
+        photo = photo = Photos.query.with_entities(Photos.photo_data, Photos.date_taken).where(photo_id == Photos.id).first()
     except Exception as err:
         photo = None
     return photo
