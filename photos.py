@@ -2,7 +2,7 @@
 from flask_restx import Namespace, Resource, fields, reqparse 
 from models import Photos
 from flask_jwt_extended import jwt_required
-from flask import request, jsonify, send_from_directory, request, Response
+from flask import request, jsonify, send_from_directory, request, send_file
 from datetime import timedelta, datetime, time
 import re
 # Third-Party Imports
@@ -211,7 +211,8 @@ def retrieve_thumbnails_by_album_id_within_date_range(album_id, table_name = 'ph
 def retrieve_latest_photo_for_album(album_id):
 
     try:
-        photo = Photos.query.with_entities(Photos.thumbnail_data, Photos.date_taken).filter(Photos.album_id == album_id).order_by(Photos.date_taken.desc()).first()
+        photo_id = Photos.query.with_entities(Photos.id).filter(Photos.album_id == album_id).order_by(Photos.date_taken.desc()).first()
+        photo = photo = Photos.query.with_entities(Photos.photo_data, Photos.date_taken).where(photo_id == Photos.id).first()
     except Exception as err:
         photo = None
     return photo
@@ -220,25 +221,29 @@ def retrieve_latest_photo(album_id):
 
     try:
         photo = Photos.query.with_entities(Photos.photo_data, Photos.date_taken).filter(Photos.album_id == album_id).order_by(Photos.date_taken.desc()).first()
+
     except Exception as err:
         photo = None
     return photo
 
-@photos_ns.route('/latest_photo_album/<int:album_id>')
+@photos_ns.route('/latest_photo_album/<int:album_id>', methods=['GET'])
 class PhotoResource(Resource):
     def get(self, album_id):
         try:
-            print("here")
+            print('here')
             photo = retrieve_latest_photo(album_id)
-            date_taken = photo['date_taken']
+            if not photo:
+                return "Photo not found", 404
 
-            photo_data_base64 = base64.b64encode(photo.photo_data).decode('utf-8')
-
-            # Construct the image data URL
-            image_data = f"data:image/jpeg;base64,{photo_data_base64}"
-              
-            return Response(f"<img src='{image_data}' alt='Photo' />", mimetype='text/html')
+            # Serve the image directly as a file
+            return send_file(
+                io.BytesIO(photo['photo_data']),  # Assuming photo_data is in bytes
+                mimetype='image/jpeg',  # Adjust this if your image is in a different format
+                as_attachment=False,  # Set to True if you want the user to download the image
+                attachment_filename=f'album_{album_id}.jpg'
+            )
         except Exception as e:
+                logging.exception(f"ERROR: {e}")
                 return f"Error generating timelapse: {e}"
 
 @photos_ns.route('/latest_photo/<int:album_id>')
@@ -311,6 +316,17 @@ class PhotoResource(Resource):
             return {'photo_data': base64.b64encode(photo.photo_data).decode('utf-8'), 'date_taken': photo.date_taken}
         else:
             return "Photo not found", 404
+
+    @photos_ns.marshal_with(photos_model)
+    def delete(self, photo_id):
+        """Delete a camera by id"""
+        print("here")
+        photo_to_delete = Photos.query.get_or_404(photo_id)
+
+        photo_to_delete.delete()
+
+        return {'id': photo_to_delete.id}
+
 
 @photos_ns.route('/album/<int:album_id>')
 class AlbumPhotosResource(Resource):

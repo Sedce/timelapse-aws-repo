@@ -7,7 +7,8 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
-import { Typography } from '@mui/material';
+import { Typography, IconButton, Menu, MenuItem } from '@mui/material';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import JSZip from 'jszip';
 
 const style = {
@@ -26,7 +27,7 @@ const style = {
   flexDirection: 'column',
   alignItems: 'center', // Center items horizontally
   justifyContent: 'center', // Center items vertically
-  
+  position: 'relative',
 };
 
 const imageStyle = {
@@ -39,18 +40,19 @@ const imageStyle = {
 const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loading, state, setState }) => {
 
   const ITEMS_PER_PAGE = 9; // Number of items to display per page
-
   const [photoThumbnail, setPhotoThumbnail] = useState([]);
   const [filteredPhotoThumbnail, setFilteredPhotoThumbnail] = useState([]);
   const [photo, setPhoto] = useState();
   const [currentPage, setCurrentPage] = useState(1);
   const [open, setOpen] = React.useState(false);
   const [currentIndex, setCurrentIndex] = useState(0); // Track the current photo index
+  const [anchorEl, setAnchorEl] = useState(null); // State for menu anchor
+  const openMenu = Boolean(anchorEl);
 
   const handleClose = () => setOpen(false);
 
   useEffect(() => {
-    setLoading({ ...loading, ["skeleton"]: true })
+    setLoading({ ...loading, ["skeleton"]: true });
     fetch('/photos/view_photos/' + cameraID)
       .then(res => res.json())
       .then(data => {
@@ -62,21 +64,17 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
   }, []);
 
   useEffect(() => {
-    
-    if(state && photoThumbnail.length > 0){
+    if (state && photoThumbnail.length > 0) {
       const startDate = state[0]?.startDate;
       const endDate = state[0]?.endDate;
 
       const filtered = photoThumbnail?.filter(item => {
         const dateTaken = new Date(item.date_taken);
-        return dateTaken >= new Date(startDate)  && dateTaken <= new Date(endDate) ;
+        return dateTaken >= new Date(startDate) && dateTaken <= new Date(endDate);
       });
-      console.log(filtered)
       setFilteredPhotoThumbnail(filtered);
     }
-  }, [state]); // Recompute when state or photoThumbnails changes
-
-
+  }, [state]);
 
   const totalPages = Math.ceil(filteredPhotoThumbnail?.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -91,17 +89,19 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
     setState([]); // Clear the state
     setState([
       {
-        startDate: new Date(), // Add a new item with default or specific values
+        startDate: new Date(),
         endDate: new Date(),
         key: 'selection',
         color: 'red'
-      }]);
+      }
+    ]);
     setShowCalendar(false);
     setShow(false);
-  }
+  };
+
   const onThumbnailClick = (index) => {
     setCurrentIndex(index);
-    setLoading({ ...loading, ["circular"]: true })
+    setLoading({ ...loading, ["circular"]: true });
     fetch(`/photos/photo/${filteredPhotoThumbnail[index]?.id}`)
       .then(response => {
         if (!response.ok) {
@@ -111,13 +111,13 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
       })
       .then(data => {
         setPhoto(data);
-        setLoading({ ...loading, ["circular"]: false })
+        setLoading({ ...loading, ["circular"]: false });
         setOpen(true);
       })
       .catch(error => {
         console.error('Error fetching photo:', error);
       });
-  }
+  };
 
   const handlePrevClick = () => {
     if (currentIndex > 0) {
@@ -128,7 +128,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
         .then(data => setPhoto(data))
         .catch(error => console.error('Error fetching photo:', error));
     }
-  }
+  };
 
   const handleNextClick = () => {
     if (currentIndex < filteredPhotoThumbnail?.length - 1) {
@@ -139,7 +139,48 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
         .then(data => setPhoto(data))
         .catch(error => console.error('Error fetching photo:', error));
     }
-  }
+  };
+
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleDelete = (index) => {
+    fetch(`/photos/photo/${filteredPhotoThumbnail[index]?.id}`, {
+      method: 'DELETE', // Use DELETE method for deleting
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        // After successful deletion, you can remove the photo from the state
+        setLoading({ ...loading, ["circular"]: true });
+        const updatedPhotos = filteredPhotoThumbnail.filter((_, i) => i !== index);
+        setFilteredPhotoThumbnail(updatedPhotos);
+        setLoading({ ...loading, ["circular"]: false });
+        setOpen(false);
+      })
+      .catch(error => {
+        console.error('Error deleting photo:', error);
+      });
+      
+    handleMenuClose();
+  };
+
+  const handleDownload = () => {
+    handleMenuClose();
+  };
+
+  const handleViewFullSize = () => {;
+    handleMenuClose();
+  };
 
   return (
     <Container>
@@ -151,7 +192,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
       >
         <Box sx={style}>
           <Fade in={open} timeout={500}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', position: 'relative' }}>
               <button onClick={handlePrevClick} disabled={currentIndex === 0} style={{ marginRight: '10px' }}>
                 &lt; {/* Left arrow */}
               </button>
@@ -163,6 +204,29 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
               <button onClick={handleNextClick} disabled={currentIndex === filteredPhotoThumbnail?.length - 1} style={{ marginLeft: '10px' }}>
                 &gt; {/* Right arrow */}
               </button>
+              <IconButton
+                aria-label="more"
+                aria-controls="long-menu"
+                aria-haspopup="true"
+                onClick={handleMenuClick}
+                style={{
+                  position: 'absolute',
+                  bottom: '10px',
+                  right: '10px',
+                  color: 'white',
+                }}
+              >
+                <MoreVertIcon />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={openMenu}
+                onClose={handleMenuClose}
+              >
+                <MenuItem style={{color: 'black'}} onClick={() => handleDelete(currentIndex)}>Delete</MenuItem>
+                <MenuItem  style={{color: 'black'}} nClick={handleDownload}>Download</MenuItem>
+                <MenuItem  style={{color: 'black'}} onClick={handleViewFullSize}>View Full Size</MenuItem>
+              </Menu>
             </div>
           </Fade>
         </Box>
@@ -194,7 +258,7 @@ const ViewPhotosPage = ({ setShow, setShowCalendar, cameraID, setLoading, loadin
         </Grid>
       </Grid>
     </Container>
-  )
+  );
 }
 
 export default ViewPhotosPage;
